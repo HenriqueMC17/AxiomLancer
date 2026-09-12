@@ -10,7 +10,7 @@ import { Glow } from "@/components/ui/glow";
  */
 export function HeroSection() {
   return (
-    <section className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0D0D0D]">
+    <section id="home" className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0D0D0D]">
       {/* Ambient Lighting Volumétrica (EcoVolt Glow pattern) */}
       <Glow color="hybrid" size="xl" position="top-center" />
       <Glow color="emerald" size="md" position="top-right" />
