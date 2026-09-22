@@ -6,7 +6,7 @@ import { Activity, ShieldCheck, RefreshCw, Zap, Lock, Pause, CheckCircle2 } from
 
 /**
  * Client Island - Telemetry HUD Interactive
- * Materialidade: Layer 1 (#1A1A1A) com Layer 2 (#2D2D2D) e destaque térmico Amber.
+ * Materialidade: Layer 1 (#1A1A1A) com Layer 2 (#2D2D2D) e destaque térmico Amber (#FF9900).
  * Core Web Vitals: Tabular Nums para Zero CLS e aceleração por GPU com translate3d.
  */
 export function TelemetryHudInteractive() {

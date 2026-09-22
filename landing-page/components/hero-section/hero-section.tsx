@@ -1,80 +1,86 @@
-import { CheckCircle2, ShieldCheck, Calendar } from "lucide-react";
-import { LeadCaptureForm } from "./lead-capture-form";
-import { TelemetryHud } from "./telemetry-hud";
-import { Glow } from "@/components/ui/glow";
+import { ShieldCheck, CheckCircle2, Zap } from "lucide-react";
+import { HeroCaptureForm } from "./hero-capture-form";
+import { TelemetryHudInteractive } from "./telemetry-hud-interactive";
 
 /**
- * Pure Server Component (RSC) - Hero Section
- * Mandatory headline, dual CTAs, risk reversal, and live telemetry preview.
- * Ambient lighting inspired by EcoVolt Glow engine.
+ * Pure Server Component (RSC) - Hero Section Enterprise
+ * Diretrizes: Dark Mode Tri-Layer (#0D0D0D), Zero layout shift e tipografia tabular.
  */
 export function HeroSection() {
   return (
-    <section id="home" className="relative pt-20 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0D0D0D]">
-      {/* Ambient Lighting Volumétrica (EcoVolt Glow pattern) */}
-      <Glow color="hybrid" size="xl" position="top-center" />
-      <Glow color="emerald" size="md" position="top-right" />
+    <section 
+      id="hero"
+      aria-labelledby="hero-title"
+      className="relative pt-24 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden bg-[#0D0D0D]"
+    >
+      {/* Grid Blueprint Estático Sutil (Layer 0 Background) */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-size-[3.5rem_3.5rem] mask-[radial-gradient(ellipse_70%_60%_at_50%_0%,#000_65%,transparent_100%)]"
+        aria-hidden="true"
+      />
 
-      <div className="relative max-w-6xl mx-auto text-center z-10">
+      {/* Volumetric Glow Amber de Conversão */}
+      <div 
+        className="pointer-events-none absolute top-12 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[620px] h-[340px] bg-[#FF9900]/10 blur-[130px] rounded-full z-0"
+        aria-hidden="true"
+      />
+
+      <div className="relative max-w-5xl mx-auto text-center z-10">
         
-        {/* Eyebrow Pill Badge */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1A1A1A] border border-white/10 text-[#2E7D32] text-xs font-medium tracking-wide mb-8 shadow-xl shadow-black/60">
+        {/* Eyebrow Pill com Live Status */}
+        <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#1A1A1A] border border-white/8 text-xs font-mono mb-8 shadow-lg shadow-black/40">
           <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#2E7D32] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2E7D32]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF9900] opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF9900]" />
           </span>
-          <span className="text-neutral-300 font-mono text-[11px] uppercase tracking-wider">
-            GESTÃO FINANCEIRA AUTÔNOMA PARA FREELANCERS & MICROAGÊNCIAS
+          <span className="text-neutral-300 tracking-wider uppercase text-[11px] font-semibold">
+            Motor de Execução Financeira Autônoma
+          </span>
+          <span className="text-neutral-600">|</span>
+          <span className="text-[#FF9900] font-medium flex items-center gap-1">
+            <Zap className="w-3 h-3 fill-current" /> Latência 12ms
           </span>
         </div>
 
-        {/* Headline Obrigatória */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.15] text-balance mb-6">
-          Cansado de passar o final do mês correndo atrás de clientes atrasados sem saber quanto realmente vai entrar na conta?
+        {/* Headline de Alta Conversão (Direta, Afirmativa e Sem Pergunta Passiva) */}
+        <h1 
+          id="hero-title"
+          className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.08] text-balance mb-6"
+        >
+          Transforme código e design em dinheiro na conta.{" "}
+          <span className="text-transparent bg-clip-text bg-linear-to-r from-[#FF9900] via-[#FFB84D] to-amber-200">
+            Sem o constrangimento de cobrar clientes.
+          </span>
         </h1>
 
-        {/* Subtítulo de Conexão e Alívio Emocional */}
-        <p className="text-base sm:text-lg lg:text-xl text-neutral-400 max-w-3xl mx-auto leading-relaxed mb-10 text-pretty">
-          Deixe de ser o cobrador constrangido do seu próprio trabalho. O <strong className="text-white font-semibold">AxiomLancer</strong> é a esteira autônoma que calcula impostos, emite cobranças via PIX/Boleto e executa réguas preditivas inteligentes. Você programa, cria e entrega; o nosso robô garante que o dinheiro caia na sua conta.
+        {/* Subtítulo de Alívio e Clareza Operacional */}
+        <p className="text-base sm:text-lg lg:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed mb-10 text-pretty">
+          A esteira autônoma que isola impostos no ato do pagamento, liquida via PIX/Boleto e despacha réguas preditivas corteses. Você entrega o trabalho; o robô garante o recebimento.
         </p>
 
-        {/* Primary Form CTA Island & Secondary Demo Action */}
-        <div id="trial" className="mb-8 scroll-mt-28 flex flex-col items-center">
-          <LeadCaptureForm />
-          
-          <div className="mt-4">
-            <a
-              href="#demo"
-              className="inline-flex items-center gap-2 text-xs font-medium text-neutral-400 hover:text-white transition-[color] duration-150 py-1 border-b border-transparent hover:border-neutral-500"
-            >
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Ou prefere ver a plataforma guiada? Agendar demonstração</span>
-            </a>
-          </div>
+        {/* Client Island: Formulário de Captura de Alta Intenção */}
+        <div className="mb-8 flex flex-col items-center">
+          <HeroCaptureForm />
         </div>
 
-        {/* Micro-copy de Descompressão de Risco */}
+        {/* ICP Trust Signals & Risk Reversal */}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-neutral-400 font-medium mb-14">
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#2E7D32] shrink-0" aria-hidden="true" />
+          <div className="flex items-center gap-1.5 min-h-[48px]">
+            <CheckCircle2 className="w-4 h-4 text-[#FF9900] shrink-0" aria-hidden="true" />
             <span>Sem cartão de crédito no cadastro</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" aria-hidden="true" />
-            <span>Setup em 3 minutos</span>
+          <div className="flex items-center gap-1.5 min-h-[48px]">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />
+            <span>Setup funcional em 3 minutos</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#2E7D32] shrink-0" aria-hidden="true" />
-            <span>Integrado com Asaas e Stripe</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <CheckCircle2 className="w-4 h-4 text-[#2E7D32] shrink-0" aria-hidden="true" />
-            <span>Cancele quando quiser</span>
+          <div className="flex items-center gap-1.5 min-h-[48px]">
+            <CheckCircle2 className="w-4 h-4 text-[#FF9900] shrink-0" aria-hidden="true" />
+            <span>Conexão nativa Asaas & Stripe</span>
           </div>
         </div>
 
-        {/* Telemetria HUD Client Island com Liquid Glass e Preview do Motor */}
-        <TelemetryHud />
+        {/* Client Island: HUD de Telemetria Interativo (Liquid Glass L1/L2) */}
+        <TelemetryHudInteractive />
 
       </div>
     </section>
