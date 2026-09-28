@@ -1,0 +1,47 @@
+import { PrismaClient, Prisma } from '@prisma/client';
+import { IUnitOfWork } from '../../application/ports/unit-of-work.interface';
+import { IInvoiceRepository } from '../../domain/repositories/invoice-repository.interface';
+import { ILedgerRepository } from '../../domain/repositories/ledger-repository.interface';
+import { IExpenseRepository } from '../../domain/repositories/expense-repository.interface';
+import { IDeduplicationJournalRepository } from '../../domain/repositories/deduplication-journal-repository.interface';
+import { PrismaInvoiceRepository } from './repositories/prisma-invoice.repository';
+import { PrismaLedgerRepository } from './repositories/prisma-ledger.repository';
+import { PrismaExpenseRepository } from './repositories/prisma-expense.repository';
+import { PrismaDeduplicationRepository } from './repositories/prisma-deduplication.repository';
+import { prisma as defaultPrisma } from './prisma.client';
+
+export class PrismaUnitOfWork implements IUnitOfWork {
+  public invoiceRepository: IInvoiceRepository;
+  public ledgerRepository: ILedgerRepository;
+  public expenseRepository: IExpenseRepository;
+  public deduplicationJournalRepository: IDeduplicationJournalRepository;
+
+  constructor(private readonly client: PrismaClient | Prisma.TransactionClient = defaultPrisma) {
+    this.invoiceRepository = new PrismaInvoiceRepository(this.client);
+    this.ledgerRepository = new PrismaLedgerRepository(this.client);
+    this.expenseRepository = new PrismaExpenseRepository(this.client);
+    this.deduplicationJournalRepository = new PrismaDeduplicationRepository(this.client);
+  }
+
+  /**
+   * Executa um bloco de operações atômicas sob transação ACID estrita no PostgreSQL
+   */
+  public async executeInTransaction<T>(work: (uow: IUnitOfWork) => Promise<T>): Promise<T> {
+    if ('$transaction' in this.client) {
+      return await (this.client as PrismaClient).$transaction(
+        async (tx) => {
+          const transactionalUow = new PrismaUnitOfWork(tx);
+          return await work(transactionalUow);
+        },
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          maxWait: 5000,
+          timeout: 10000,
+        },
+      );
+    }
+
+    // Se já estiver dentro de uma transação aninhada
+    return await work(this);
+  }
+}

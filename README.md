@@ -23,24 +23,20 @@ O **AxiomLancer** rompe com o modelo tradicional de dashboards passivos. Em vez 
 AxiomLancer/
 ├── .gitignore                      # Regras globais de exclusão do monorepo
 ├── README.md                       # Documentação principal da plataforma
+├── backend/                        # Núcleo Financeiro & Motor de Faturamento (Clean Architecture & DDD)
+│   ├── prisma/                     # Schema PostgreSQL (Users, Invoices, Expense, Ledger_Transaction, DeduplicationJournal)
+│   ├── src/
+│   │   ├── domain/                 # Domínio Puro (Entities, Money VO, TaxCalculator, InvoiceGeneration, LedgerPosting)
+│   │   ├── application/            # Casos de Uso (CreateInvoice, CalculateTaxes, ProcessBillingTrigger, SettleInvoice)
+│   │   ├── infrastructure/         # Prisma Repositories, Unit of Work ACID, Redis/BullMQ, Cookies BFF
+│   │   └── interfaces/             # Fastify Server, Controllers, Zod Schemas (Fail Fast) & BFF Auth Plugin
+│   ├── tests/                      # Suíte de Testes Unitários e Mocks In-Memory (Vitest - >98% Coverage)
+│   └── validate-all.ps1            # Quality Gate Determinístico do Backend
 └── landing-page/                   # Aplicação Next.js 15+ de Alta Conversão
     ├── app/                        # App Router (Pure RSC no root, robots, sitemap, SEO)
     ├── components/                 # Componentes atômicos e bento grid
-    │   ├── hero-section/           # Hero com Telemetria HUD (Nominal vs. Stress)
-    │   ├── panic-sandbox/          # Live Sandbox interativo do Botão de Pânico
-    │   ├── features-bento/         # Bento Grid dos 6 pilares de valor
-    │   ├── interactive/            # Seletor interativo de personas e micro-CTAs
-    │   ├── roi-calculator/         # Calculadora de ROI e horas recuperadas
-    │   ├── pricing-bento/          # Tabela de planos com comparativo decoy
-    │   └── ui/                     # Lenis Smooth Scroll e componentes visuais
     ├── lib/                        # Núcleo de regras, resiliência e schemas
-    │   ├── actions/                # Server Actions blindadas com Circuit Breaker
-    │   ├── content/                # SSOT de copywriting e CRO
-    │   ├── observability/          # Logger JSON estruturado
-    │   ├── resilience/             # Circuit Breaker com Exponential Backoff & Jitter
-    │   └── schemas/                # Schemas de validação estrita (Zod)
-    ├── validate-all.ps1            # Quality Gate determinístico (.agente-core)
-    └── vitest.config.ts            # Configuração da suíte de testes unitários
+    └── validate-all.ps1            # Quality Gate determinístico (.agente-core)
 ```
 
 ---
@@ -63,6 +59,25 @@ AxiomLancer/
 ### Pré-requisitos
 - Node.js 18.18+ ou superior
 - npm ou yarn
+
+### Instalação & Execução do Núcleo Financeiro (Backend)
+
+```bash
+# Navegar até a pasta do backend
+cd backend
+
+# Instalar dependências
+npm install
+
+# Iniciar servidor em desenvolvimento (Fastify + TypeScript)
+npm run dev
+
+# Executar suíte completa de testes com cobertura matemática (Vitest)
+npm run test:coverage
+
+# Executar o Quality Gate determinístico
+.\validate-all.ps1
+```
 
 ### Instalação & Execução da Landing Page
 

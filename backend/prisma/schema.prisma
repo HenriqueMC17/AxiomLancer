@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------
+// ENUMS DE DOMÍNIO FINANCEIRO & OPERACIONAL
+// ----------------------------------------------------
+
+enum TaxRegime {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
+  MEI
+  AUTONOMO
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+  OVERDUE
+}
+
+enum LedgerEntryType {
+  DEBIT
+  CREDIT
+}
+
+enum AccountCategory {
+  ASSET         // Ativo (Ex: Caixa, Banco, Contas a Receber)
+  LIABILITY     // Passivo (Ex: Obrigações a Pagar)
+  EQUITY        // Patrimônio Líquido
+  REVENUE       // Receitas de Prestação de Serviços
+  EXPENSE       // Despesas Operacionais
+  TAX_RESERVE   // Reserva Provisionada de Impostos (Cofre Virtual)
+}
+
+enum DeduplicationStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ----------------------------------------------------
+// ENTIDADES DO LEDGER & FATURAMENTO (UUID v4 + DECIMAL 12,2)
+// ----------------------------------------------------
+
+model User {
+  id                 String              @id @default(uuid()) @db.Uuid
+  email              String              @unique @db.VarChar(255)
+  passwordHash       String              @db.VarChar(255)
+  name               String              @db.VarChar(255)
+  taxId              String              @unique @db.VarChar(20) // CPF ou CNPJ
+  taxRegime          TaxRegime           @default(SIMPLES_NACIONAL)
+  defaultTaxRate     Decimal             @default(0.0600) @db.Decimal(5, 4) // Ex: 0.0600 = 6%
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+
+  // Relacionamentos
+  invoices           Invoice[]
+  expenses           Expense[]
+  ledgerTransactions LedgerTransaction[]
+
+  @@map("users")
+}
+
+model Invoice {
+  id                 String              @id @default(uuid()) @db.Uuid
+  userId             String              @db.Uuid
+  clientName         String              @db.VarChar(255)
+  clientEmail        String              @db.VarChar(255)
+  clientTaxId        String              @db.VarChar(20)
+  grossAmount        Decimal             @db.Decimal(12, 2)
+  taxRate            Decimal             @db.Decimal(5, 4) // Ex: 0.0600 = 6.00%
+  taxAmount          Decimal             @db.Decimal(12, 2)
+  netAmount          Decimal             @db.Decimal(12, 2)
+  status             InvoiceStatus       @default(DRAFT)
+  dueDate            DateTime            @db.Date
+  issuedAt           DateTime?           @db.Timestamptz(6)
+  paidAt             DateTime?           @db.Timestamptz(6)
+  cancelledAt        DateTime?           @db.Timestamptz(6)
+  description        String?             @db.Text
+  items              Json                // Array de itens discriminados: [{ description, quantity, unitPrice, total }]
+  taxBreakdown       Json?               // Breakdown discriminado: { iss, pis, cofins, irrf, csll }
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+
+  // Relacionamentos
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  ledgerTransactions LedgerTransaction[]
+
+  @@index([userId, status])
+  @@index([dueDate])
+  @@map("invoices")
+}
+
+model Expense {
+  id                 String              @id @default(uuid()) @db.Uuid
+  userId             String              @db.Uuid
+  description        String              @db.VarChar(255)
+  category           String              @db.VarChar(100)
+  amount             Decimal             @db.Decimal(12, 2)
+  taxDeductible      Boolean             @default(false)
+  date               DateTime            @db.Date
+  receiptUrl         String?             @db.VarChar(500)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+
+  // Relacionamentos
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  ledgerTransactions LedgerTransaction[]
+
+  @@index([userId, category])
+  @@index([date])
+  @@map("expenses")
+}
+
+model LedgerTransaction {
+  id                 String              @id @default(uuid()) @db.Uuid
+  userId             String              @db.Uuid
+  invoiceId          String?             @db.Uuid
+  expenseId          String?             @db.Uuid
+  entryType          LedgerEntryType
+  accountCategory    AccountCategory
+  amount             Decimal             @db.Decimal(12, 2)
+  balanceAfter       Decimal             @db.Decimal(12, 2)
+  description        String              @db.VarChar(255)
+  correlationId      String?             @db.Uuid // Agrupamento de partidas dobradas
+  transactionDate    DateTime            @default(now()) @db.Timestamptz(6)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+
+  // Relacionamentos
+  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  invoice            Invoice?            @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  expense            Expense?            @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+
+  @@index([userId, accountCategory])
+  @@index([transactionDate])
+  @@index([correlationId])
+  @@map("ledger_transactions")
+}
+
+model DeduplicationJournal {
+  id                 String              @id @default(uuid()) @db.Uuid
+  idempotencyKey     String              @unique @db.VarChar(255) // Ex: "invoice_id + trigger_day" ou "eventId"
+  eventType          String              @db.VarChar(100)
+  status             DeduplicationStatus @default(PROCESSING)
+  lockedUntil        DateTime            @db.Timestamptz(6) // Bloqueio atômico com expiração
+  responsePayload    Json?               // Cache da resposta para replay idempotente
+  errorMessage       String?             @db.Text
+  executionCount     Int                 @default(1)
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+
+  @@index([idempotencyKey, status])
+  @@index([lockedUntil])
+  @@map("deduplication_journal")
+}
