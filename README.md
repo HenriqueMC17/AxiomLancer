@@ -1,6 +1,6 @@
 # AxiomLancer ⚡
 
-> **Motor de Execução Financeira Autônoma, Faturamento & Cobrança Preditiva para Freelancers e Microagências**  
+> **Motor de Execução Financeira Autônoma, Faturamento & Cobrança Preditiva para Freelancers e Microagências**
 > *Transforme código e design em dinheiro na conta, sem o constrangimento de cobrar clientes.*
 
 ---
@@ -57,6 +57,7 @@ AxiomLancer/
 ## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
+
 - Node.js 18.18+ ou superior
 - npm ou yarn
 
