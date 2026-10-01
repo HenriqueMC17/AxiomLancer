@@ -1,6 +1,6 @@
 import { IInvoiceRepository } from '../../domain/repositories/invoice-repository.interface';
 import { ILedgerRepository } from '../../domain/repositories/ledger-repository.interface';
-import { Money } from '../../domain/value-objects/money.vo';
+import { FinancialAnalyticsService } from '../../modules/treasury/domain/services/financial-analytics.service';
 import {
   DashboardSummaryResponseDTO,
   DashboardInvoiceItemDTO,
@@ -12,6 +12,7 @@ export class GetDashboardSummaryUseCase {
   constructor(
     private readonly invoiceRepository: IInvoiceRepository,
     private readonly ledgerRepository: ILedgerRepository,
+    private readonly financialAnalyticsService: FinancialAnalyticsService = new FinancialAnalyticsService(),
   ) {}
 
   public async execute(userId: string): Promise<DashboardSummaryResponseDTO> {
@@ -22,45 +23,22 @@ export class GetDashboardSummaryUseCase {
     const ledgerTransactions = await this.ledgerRepository.findByUserId(userId);
 
     // 3. Consulta saldos consolidados por categoria contábil
-    let assetBalance = await this.ledgerRepository.getAccountBalance(userId, 'ASSET');
-    let taxReserveBalance = await this.ledgerRepository.getAccountBalance(userId, 'TAX_RESERVE');
-    let expenseBalance = await this.ledgerRepository.getAccountBalance(userId, 'EXPENSE');
+    const assetBalance = await this.ledgerRepository.getAccountBalance(userId, 'ASSET');
+    const taxReserveBalance = await this.ledgerRepository.getAccountBalance(userId, 'TAX_RESERVE');
+    const expenseBalance = await this.ledgerRepository.getAccountBalance(userId, 'EXPENSE');
 
-    // 4. Cálculos analíticos de faturas
-    let totalReceivables = Money.zero();
-    let totalLiquidated = Money.zero();
-    let overdueCount = 0;
-    let pendingCount = 0;
+    // 4. Executa cálculos analíticos puros de domínio através do FinancialAnalyticsService
+    const analytics = this.financialAnalyticsService.calculate(invoices, {
+      asset: assetBalance,
+      taxReserve: taxReserveBalance,
+      expense: expenseBalance,
+    });
 
-    for (const inv of invoices) {
-      const status = inv.status.getValue();
-      if (status === 'PAID') {
-        totalLiquidated = totalLiquidated.add(inv.grossAmount);
-      } else if (status === 'ISSUED' || status === 'DRAFT') {
-        totalReceivables = totalReceivables.add(inv.grossAmount);
-        pendingCount++;
-      } else if (status === 'OVERDUE') {
-        totalReceivables = totalReceivables.add(inv.grossAmount);
-        overdueCount++;
-      }
-    }
-
-    // Se o saldo do Ledger ASSET estiver em zero mas houver faturas pagas, sincroniza
-    const liquidatedStr = assetBalance.isZero() && !totalLiquidated.isZero()
-      ? totalLiquidated.toDatabaseDecimal()
-      : assetBalance.toDatabaseDecimal();
-
-    const taxReserveStr = taxReserveBalance.toDatabaseDecimal();
-    const expensesStr = expenseBalance.toDatabaseDecimal();
-    const receivablesStr = totalReceivables.toDatabaseDecimal();
-
-    // 5. Cálculo do Risk Rate & Health Score (Fórmula Determinística)
-    const totalActiveReceivablesCount = pendingCount + overdueCount;
-    const defaultRiskRate = totalActiveReceivablesCount > 0
-      ? Number(((overdueCount / totalActiveReceivablesCount) * 100).toFixed(1))
-      : 1.2;
-
-    const financialHealthScore = Math.max(0, Math.min(100, Number((100 - (defaultRiskRate * 1.5)).toFixed(1))));
+    // 5. Normalização de DTO para apresentação (sem poluir a camada de domínio)
+    const liquidatedStr = analytics.liquidatedRevenue.toDatabaseDecimal();
+    const receivablesStr = analytics.receivables.toDatabaseDecimal();
+    const expensesStr = analytics.operationalExpenses.toDatabaseDecimal();
+    const taxReserveStr = analytics.taxReserve.toDatabaseDecimal();
 
     // 6. Formatação das faturas recentes
     const recentInvoices: DashboardInvoiceItemDTO[] = invoices.slice(0, 10).map((inv) => ({
@@ -88,15 +66,8 @@ export class GetDashboardSummaryUseCase {
       transactionDate: tx.transactionDate.toISOString(),
     }));
 
-    // 8. Projeção de fluxo de caixa (Cashflow)
-    const cashflowProjection: DashboardCashflowPointDTO[] = [
-      { period: 'Abr', receivables: 32000, expenses: 7800, taxReserve: 1920, netCashflow: 22280 },
-      { period: 'Mai', receivables: 38500, expenses: 8400, taxReserve: 2310, netCashflow: 27790 },
-      { period: 'Jun', receivables: 41200, expenses: 8900, taxReserve: 2472, netCashflow: 29828 },
-      { period: 'Jul', receivables: 45000, expenses: 9100, taxReserve: 2700, netCashflow: 33200 },
-      { period: 'Ago', receivables: 47800, expenses: 9400, taxReserve: 2868, netCashflow: 35532 },
-      { period: 'Set (Atual)', receivables: 52600, expenses: 9180, taxReserve: 3156, netCashflow: 40264 },
-    ];
+    // 8. Projeção de fluxo de caixa
+    const cashflowProjection: DashboardCashflowPointDTO[] = analytics.cashflowProjection;
 
     return {
       metrics: {
@@ -104,8 +75,8 @@ export class GetDashboardSummaryUseCase {
         receivables: receivablesStr !== '0.00' ? receivablesStr : '24320.00',
         operationalExpenses: expensesStr !== '0.00' ? expensesStr : '9180.50',
         taxReserve: taxReserveStr !== '0.00' ? taxReserveStr : '3864.20',
-        defaultRiskRate,
-        financialHealthScore: financialHealthScore || 98.4,
+        defaultRiskRate: analytics.defaultRiskRate,
+        financialHealthScore: analytics.financialHealthScore || 98.4,
       },
       recentInvoices,
       recentLedgerEntries,
