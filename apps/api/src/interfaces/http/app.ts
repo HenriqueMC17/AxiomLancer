@@ -26,7 +26,6 @@ import { GetDashboardSummaryUseCase } from '../../application/use-cases/get-dash
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify({
     logger: process.env.NODE_ENV === 'test' ? false : true,
-    disableRequestLogging: process.env.NODE_ENV === 'test',
   });
 
   // 1. CORS configurado com credentials: true para suporte ao BFF e Angular

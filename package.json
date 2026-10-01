@@ -17,8 +17,8 @@
     "dev:web": "npm run dev --workspace=@axiom/web",
     "test:api": "npm run test --workspace=@axiom/api",
     "build:web": "npm run build --workspace=@axiom/web",
-    "convex:dev": "convex dev --dir apps/realtime-sync",
-    "convex:deploy": "convex deploy --dir apps/realtime-sync"
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy"
   },
   "devDependencies": {
     "turbo": "^2.4.4"
