@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import { bffAuthPlugin } from './plugins/bff-auth.plugin';
 import { registerErrorHandler } from './plugins/error-handler.plugin';
+import { outboxWorkerPlugin } from '../../infrastructure/outbox/outbox-worker.plugin';
 import { TaxController } from './controllers/tax.controller';
 import { InvoiceController } from './controllers/invoice.controller';
 import { BillingTriggerController } from './controllers/billing-trigger.controller';
@@ -49,7 +50,10 @@ export async function buildApp(): Promise<FastifyInstance> {
   // 4. Plugin BFF de Sessão com Cookies HttpOnly / SameSite=Strict
   await app.register(bffAuthPlugin);
 
-  // 5. Handler global de erros (Zod Fail Fast e Domain Errors)
+  // 5. Worker em Background do Transactional Outbox (CQRS / Convex sync)
+  await app.register(outboxWorkerPlugin);
+
+  // 6. Handler global de erros (Zod Fail Fast e Domain Errors)
   registerErrorHandler(app);
 
   // 6. Rotas de Apresentação e Health Check
