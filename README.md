@@ -19,38 +19,45 @@ O **AxiomLancer** rompe com o modelo tradicional de dashboards passivos. Em vez 
 
 ## 📁 Estrutura do Monorepo
 
-```
+```text
 AxiomLancer/
 ├── .gitignore                      # Regras globais de exclusão do monorepo
 ├── README.md                       # Documentação principal da plataforma
 ├── backend/                        # Núcleo Financeiro & Motor de Faturamento (Clean Architecture & DDD)
-│   ├── prisma/                     # Schema PostgreSQL (Users, Invoices, Expense, Ledger_Transaction, DeduplicationJournal)
+│   ├── prisma/                     # Schema PostgreSQL (TimescaleDB, RLS, 22 Entidades, 9 Enums)
+│   ├── sql/                        # Script SQL mestre de inicialização (init-database.sql)
 │   ├── src/
 │   │   ├── domain/                 # Domínio Puro (Entities, Money VO, TaxCalculator, InvoiceGeneration, LedgerPosting)
 │   │   ├── application/            # Casos de Uso (CreateInvoice, CalculateTaxes, ProcessBillingTrigger, SettleInvoice)
 │   │   ├── infrastructure/         # Prisma Repositories, Unit of Work ACID, Redis/BullMQ, Cookies BFF
-│   │   └── interfaces/             # Fastify Server, Controllers, Zod Schemas (Fail Fast) & BFF Auth Plugin
-│   ├── tests/                      # Suíte de Testes Unitários e Mocks In-Memory (Vitest - >98% Coverage)
-│   └── validate-all.ps1            # Quality Gate Determinístico do Backend
-└── landing-page/                   # Aplicação Next.js 15+ de Alta Conversão
-    ├── app/                        # App Router (Pure RSC no root, robots, sitemap, SEO)
-    ├── components/                 # Componentes atômicos e bento grid
-    ├── lib/                        # Núcleo de regras, resiliência e schemas
-    └── validate-all.ps1            # Quality Gate determinístico (.agente-core)
+│   │   └── interfaces/             # Fastify Server, Controllers, Zod Schemas & BFF Auth Plugin
+│   └── tests/                      # Suíte de Testes Unitários e Mocks In-Memory (Vitest - >98% Coverage)
+├── convex/                         # Banco de Dados e Funções Reativas na Nuvem Convex (Live Cloud)
+│   ├── schema.ts                   # Schema reativo Convex com 22 tabelas e 32 índices
+│   ├── invoices.ts                 # Queries e Mutations de faturamento em tempo real
+│   └── dashboard.ts                # Telemetria financeira em tempo real
+└── frontend/                       # Aplicação Angular Moderna (Standalone Components & Signals)
+    ├── src/
+    │   ├── app/
+    │   │   ├── core/               # Services (Finance, Auth, Toast) com Signals e Interceptors BFF
+    │   │   ├── pages/              # Landing Page, Dashboard Executivo e Login BFF
+    │   │   ├── app.routes.ts       # Rotas com lazy loading
+    │   │   └── app.config.ts       # Configurações do Angular (HttpClient, withFetch, withInterceptors)
+    │   └── styles.css              # Design System Tri-Layer Dark Mode & Glassmorphism
+    └── angular.json                # Configuração do compilador Angular
 ```
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router, Pure Server Components)
-- **Biblioteca de UI**: [React 19](https://react.dev/)
-- **Estilização**: [Tailwind CSS v4](https://tailwindcss.com/) com paleta Tri-Layer Dark Mode (`#0D0D0D`, `#1A1A1A`, `#2D2D2D`)
-- **Animações & Gestos**: [Framer Motion](https://www.framer.com/motion/)
-- **Smooth Scroll**: [Lenis](https://lenis.darkroom.engineering/)
-- **Validação de Dados**: [Zod](https://zod.dev/)
-- **Testes Unitários & Integração**: [Vitest](https://vitest.dev/)
-- **Governança & Design System**: [shadcn/ui](https://ui.shadcn.com/) (`components.json`)
+- **Frontend**: [Angular](https://angular.dev/) (Standalone Components, Signals reativos, Lazy Routing)
+- **Backend Core**: [Fastify](https://fastify.dev/) + TypeScript (Clean Architecture, DDD, Unit of Work ACID)
+- **BFF & Segurança**: Cookies HttpOnly assinados, SameSite=Strict com `withCredentials: true`
+- **Banco de Dados Relacional**: [PostgreSQL](https://www.postgresql.org/) com TimescaleDB (Hypertables) e RLS
+- **Banco de Dados em Nuvem Reativo**: [Convex](https://convex.dev/) (Convex Cloud)
+- **Estilização**: Design System Vanilla CSS com paleta Tri-Layer Dark Mode (`#07090E`, `#0F172A`, `#1E293B`)
+- **Precisão Financeira**: [Decimal.js](https://mikemcl.github.io/decimal.js/) e Value Object `Money`
 
 ---
 
@@ -59,38 +66,29 @@ AxiomLancer/
 ### Pré-requisitos
 
 - Node.js 18.18+ ou superior
-- npm ou yarn
+- npm
 
-### Instalação & Execução do Núcleo Financeiro (Backend)
+### 1. Iniciar o Núcleo Financeiro (Backend)
 
 ```bash
-# Navegar até a pasta do backend
-cd backend
-
-# Instalar dependências
-npm install
-
-# Iniciar servidor em desenvolvimento (Fastify + TypeScript)
-npm run dev
-
-# Executar suíte completa de testes com cobertura matemática (Vitest)
-npm run test:coverage
-
-# Executar o Quality Gate determinístico
-.\validate-all.ps1
+# Iniciar o backend Fastify (porta 3333)
+npm run dev:backend
 ```
 
-### Instalação & Execução da Landing Page
+### 2. Iniciar a Aplicação Angular (Frontend)
 
 ```bash
-# Navegar até a pasta da landing page
-cd landing-page
+# Iniciar o servidor de desenvolvimento do Angular (porta 4200)
+npm run dev:frontend
+```
 
-# Instalar as dependências
-npm install
+Acesse [http://localhost:4200](http://localhost:4200) no seu navegador.
 
-# Iniciar o servidor de desenvolvimento
-npm run dev
+### 3. Deploy e Sincronização do Convex
+
+```bash
+# Sincronizar funções e schema com o Convex Cloud
+npm run convex:deploy
 ```
 
 Acesse [http://localhost:3000](http://localhost:3000) no seu navegador.
