@@ -7,158 +7,528 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ----------------------------------------------------
-// ENUMS DE DOMÍNIO FINANCEIRO & OPERACIONAL
-// ----------------------------------------------------
+// ==============================================================================
+// 1. TIPOS CUSTOMIZADOS (ENUMS)
+// ==============================================================================
 
-enum TaxRegime {
-  SIMPLES_NACIONAL
-  LUCRO_PRESUMIDO
-  LUCRO_REAL
-  MEI
-  AUTONOMO
+enum IntegrationStatus {
+  ACTIVE
+  INACTIVE
+  ERROR
+  PENDING
+
+  @@map("integration_status")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  PAST_DUE
+  TRIALING
+
+  @@map("subscription_status")
 }
 
 enum InvoiceStatus {
   DRAFT
-  ISSUED
+  PENDING
   PAID
-  CANCELLED
   OVERDUE
+  CANCELED
+
+  @@map("invoice_status")
 }
 
-enum LedgerEntryType {
-  DEBIT
-  CREDIT
+enum ChannelType {
+  EMAIL
+  SMS
+  WHATSAPP
+
+  @@map("channel_type")
 }
 
-enum AccountCategory {
-  ASSET         // Ativo (Ex: Caixa, Banco, Contas a Receber)
-  LIABILITY     // Passivo (Ex: Obrigações a Pagar)
-  EQUITY        // Patrimônio Líquido
-  REVENUE       // Receitas de Prestação de Serviços
-  EXPENSE       // Despesas Operacionais
-  TAX_RESERVE   // Reserva Provisionada de Impostos (Cofre Virtual)
+enum ExpenseStatus {
+  PENDING
+  PAID
+  CANCELED
+
+  @@map("expense_status")
 }
 
-enum DeduplicationStatus {
-  PROCESSING
-  COMPLETED
+enum LedgerTxType {
+  INCOME
+  EXPENSE
+  FEE
+  REFUND
+
+  @@map("ledger_tx_type")
+}
+
+enum SaasBillingStatus {
+  PENDING
+  PAID
   FAILED
+  CANCELED
+
+  @@map("saas_billing_status")
 }
 
-// ----------------------------------------------------
-// ENTIDADES DO LEDGER & FATURAMENTO (UUID v4 + DECIMAL 12,2)
-// ----------------------------------------------------
+enum ExecutionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+
+  @@map("execution_status")
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  CANCELED
+  PENDING_SIGNATURE
+
+  @@map("contract_status")
+}
+
+// ==============================================================================
+// 2. MODELOS PRINCIPAIS & CONFIGURAÇÕES (TENANCY & AUTH)
+// ==============================================================================
 
 model User {
-  id                 String              @id @default(uuid()) @db.Uuid
-  email              String              @unique @db.VarChar(255)
-  passwordHash       String              @db.VarChar(255)
-  name               String              @db.VarChar(255)
-  taxId              String              @unique @db.VarChar(20) // CPF ou CNPJ
-  taxRegime          TaxRegime           @default(SIMPLES_NACIONAL)
-  defaultTaxRate     Decimal             @default(0.0600) @db.Decimal(5, 4) // Ex: 0.0600 = 6%
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email         String    @unique @db.VarChar(255)
+  name          String    @db.VarChar(255)
+  billingPaused Boolean   @default(false) @map("billing_paused")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz(6)
 
   // Relacionamentos
+  config             UserConfig?
+  integrations       Integration[]
+  subscriptions      UserSubscription[]
+  clients            Client[]
   invoices           Invoice[]
+  billingRules       BillingRule[]
+  messageTemplates   MessageTemplate[]
   expenses           Expense[]
   ledgerTransactions LedgerTransaction[]
+  outboxEvents       OutboxEvent[]
+  portfolio          FreelancerPortfolio?
+  contracts          Contract[]
+  projects           Project[]
+  cycleEvaluations   CycleEvaluation[]
 
   @@map("users")
 }
 
-model Invoice {
-  id                 String              @id @default(uuid()) @db.Uuid
-  userId             String              @db.Uuid
-  clientName         String              @db.VarChar(255)
-  clientEmail        String              @db.VarChar(255)
-  clientTaxId        String              @db.VarChar(20)
-  grossAmount        Decimal             @db.Decimal(12, 2)
-  taxRate            Decimal             @db.Decimal(5, 4) // Ex: 0.0600 = 6.00%
-  taxAmount          Decimal             @db.Decimal(12, 2)
-  netAmount          Decimal             @db.Decimal(12, 2)
-  status             InvoiceStatus       @default(DRAFT)
-  dueDate            DateTime            @db.Date
-  issuedAt           DateTime?           @db.Timestamptz(6)
-  paidAt             DateTime?           @db.Timestamptz(6)
-  cancelledAt        DateTime?           @db.Timestamptz(6)
-  description        String?             @db.Text
-  items              Json                // Array de itens discriminados: [{ description, quantity, unitPrice, total }]
-  taxBreakdown       Json?               // Breakdown discriminado: { iss, pis, cofins, irrf, csll }
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+model UserConfig {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String    @unique @map("user_id") @db.Uuid
+  timezone        String    @default("UTC") @db.VarChar(100)
+  defaultCurrency String    @default("BRL") @map("default_currency") @db.VarChar(10)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
 
-  // Relacionamentos
+  user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("user_config")
+}
+
+model Integration {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String            @map("user_id") @db.Uuid
+  provider           String            @db.VarChar(100)
+  status             IntegrationStatus
+  createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?         @map("deleted_at") @db.Timestamptz(6)
+
+  user               User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  ledgerTransactions LedgerTransaction[]
+
+  @@index([userId])
+  @@map("integration")
+}
+
+// ==============================================================================
+// 3. ENTIDADES FINANCEIRAS E DE ASSINATURA (SaaS)
+// ==============================================================================
+
+model SubscriptionPlan {
+  id              String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code            String             @unique @db.VarChar(100)
+  name            String             @db.VarChar(255)
+  price           Decimal            @db.Decimal(12, 2)
+  billingInterval String             @map("billing_interval") @db.VarChar(50)
+  createdAt       DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt       DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  subscriptions   UserSubscription[]
+
+  @@map("subscription_plan")
+}
+
+model UserSubscription {
+  id               String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  planId           String             @map("plan_id") @db.Uuid
+  status           SubscriptionStatus
+  startedAt        DateTime           @default(now()) @map("started_at") @db.Timestamptz(6)
+  currentPeriodEnd DateTime?          @map("current_period_end") @db.Timestamptz(6)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan             SubscriptionPlan   @relation(fields: [planId], references: [id], onDelete: Restrict)
+  saasBillings     SaasBilling[]
+
+  @@index([userId, status])
+  @@map("user_subscription")
+}
+
+model Client {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String            @map("user_id") @db.Uuid
+  legalName        String            @map("legal_name") @db.VarChar(255)
+  email            String            @db.VarChar(255)
+  toneOfVoice      String?           @map("tone_of_voice") @db.VarChar(100)
+  billingPaused    Boolean           @default(false) @map("billing_paused")
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime?         @map("deleted_at") @db.Timestamptz(6)
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  invoices         Invoice[]
+  contracts        Contract[]
+  projects         Project[]
+  cycleEvaluations CycleEvaluation[]
+
+  @@index([userId])
+  @@map("client")
+}
+
+model Invoice {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String                 @map("user_id") @db.Uuid
+  clientId              String                 @map("client_id") @db.Uuid
+  invoiceNumber         String                 @map("invoice_number") @db.VarChar(100)
+  status                InvoiceStatus
+  dueDate               DateTime               @map("due_date") @db.Timestamptz(6)
+  grossValue            Decimal                @map("gross_value") @db.Decimal(12, 2)
+  taxRate               Decimal                @default(0.00) @map("tax_rate") @db.Decimal(5, 2)
+  netValue              Decimal                @map("net_value") @db.Decimal(12, 2)
+  billingPaused         Boolean                @default(false) @map("billing_paused")
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime?              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime?              @map("deleted_at") @db.Timestamptz(6)
+
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  client                Client                 @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  ledgerTransactions    LedgerTransaction[]
+  billingExecutions     BillingExecution[]
+  recoveryTakeRate      RecoveryTakeRate?
+  deduplicationJournals DeduplicationJournal[]
+
+  @@unique([userId, invoiceNumber])
+  @@index([userId, status])
+  @@index([clientId])
+  @@map("invoice")
+}
+
+// ==============================================================================
+// 4. ENTIDADES DE FATURAMENTO, RÉGUAS E DESPESAS
+// ==============================================================================
+
+model BillingRule {
+  id                    String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String                 @map("user_id") @db.Uuid
+  name                  String                 @db.VarChar(255)
+  triggerType           String                 @map("trigger_type") @db.VarChar(100)
+  offsetDays            Int                    @map("offset_days")
+  channel               ChannelType
+  toneOfVoice           String?                @map("tone_of_voice") @db.VarChar(100)
+  active                Boolean                @default(true)
+  createdAt             DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime?              @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt             DateTime?              @map("deleted_at") @db.Timestamptz(6)
+
+  user                  User                   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  billingExecutions     BillingExecution[]
+  deduplicationJournals DeduplicationJournal[]
+
+  @@map("billing_rule")
+}
+
+model MessageTemplate {
+  id                String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId            String             @map("user_id") @db.Uuid
+  toneOfVoice       String             @map("tone_of_voice") @db.VarChar(100)
+  channel           ChannelType
+  subject           String?            @db.VarChar(255)
+  body              String             @db.Text
+  createdAt         DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime?          @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamptz(6)
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  billingExecutions BillingExecution[]
+
+  @@map("message_template")
+}
+
+model Expense {
+  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId             String              @map("user_id") @db.Uuid
+  description        String              @db.VarChar(255)
+  category           String              @db.VarChar(100)
+  amount             Decimal             @db.Decimal(12, 2)
+  dueDate            DateTime?           @map("due_date") @db.Date
+  paidAt             DateTime?           @map("paid_at") @db.Timestamptz(6)
+  status             ExpenseStatus
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime?           @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz(6)
+
   user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
   ledgerTransactions LedgerTransaction[]
 
   @@index([userId, status])
-  @@index([dueDate])
-  @@map("invoices")
+  @@map("expense")
 }
 
-model Expense {
-  id                 String              @id @default(uuid()) @db.Uuid
-  userId             String              @db.Uuid
-  description        String              @db.VarChar(255)
-  category           String              @db.VarChar(100)
-  amount             Decimal             @db.Decimal(12, 2)
-  taxDeductible      Boolean             @default(false)
-  date               DateTime            @db.Date
-  receiptUrl         String?             @db.VarChar(500)
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
-
-  // Relacionamentos
-  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
-  ledgerTransactions LedgerTransaction[]
-
-  @@index([userId, category])
-  @@index([date])
-  @@map("expenses")
-}
+// ==============================================================================
+// 5. LEDGER TRANSACTIONS E AUDITORIA FINANCEIRA
+// ==============================================================================
 
 model LedgerTransaction {
-  id                 String              @id @default(uuid()) @db.Uuid
-  userId             String              @db.Uuid
-  invoiceId          String?             @db.Uuid
-  expenseId          String?             @db.Uuid
-  entryType          LedgerEntryType
-  accountCategory    AccountCategory
-  amount             Decimal             @db.Decimal(12, 2)
-  balanceAfter       Decimal             @db.Decimal(12, 2)
-  description        String              @db.VarChar(255)
-  correlationId      String?             @db.Uuid // Agrupamento de partidas dobradas
-  transactionDate    DateTime            @default(now()) @db.Timestamptz(6)
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  id            String        @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  occurredAt    DateTime      @map("occurred_at") @db.Timestamptz(6)
+  userId        String        @map("user_id") @db.Uuid
+  invoiceId     String?       @map("invoice_id") @db.Uuid
+  expenseId     String?       @map("expense_id") @db.Uuid
+  integrationId String?       @map("integration_id") @db.Uuid
+  type          LedgerTxType
+  amount        Decimal       @db.Decimal(12, 2)
+  externalId    String?       @map("external_id") @db.VarChar(255)
+  reconciledAt  DateTime?     @map("reconciled_at") @db.Timestamptz(6)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?     @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime?     @map("deleted_at") @db.Timestamptz(6)
 
-  // Relacionamentos
-  user               User                @relation(fields: [userId], references: [id], onDelete: Restrict)
-  invoice            Invoice?            @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
-  expense            Expense?            @relation(fields: [expenseId], references: [id], onDelete: SetNull)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  invoice       Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  expense       Expense?      @relation(fields: [expenseId], references: [id], onDelete: Restrict)
+  integration   Integration?  @relation(fields: [integrationId], references: [id], onDelete: SetNull)
 
-  @@index([userId, accountCategory])
-  @@index([transactionDate])
-  @@index([correlationId])
-  @@map("ledger_transactions")
+  @@id([id, occurredAt])
+  @@index([userId, occurredAt])
+  @@map("ledger_transaction")
 }
 
-model DeduplicationJournal {
-  id                 String              @id @default(uuid()) @db.Uuid
-  idempotencyKey     String              @unique @db.VarChar(255) // Ex: "invoice_id + trigger_day" ou "eventId"
-  eventType          String              @db.VarChar(100)
-  status             DeduplicationStatus @default(PROCESSING)
-  lockedUntil        DateTime            @db.Timestamptz(6) // Bloqueio atômico com expiração
-  responsePayload    Json?               // Cache da resposta para replay idempotente
-  errorMessage       String?             @db.Text
-  executionCount     Int                 @default(1)
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+model SaasBilling {
+  id             String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  subscriptionId String            @map("subscription_id") @db.Uuid
+  amount         Decimal           @db.Decimal(12, 2)
+  status         SaasBillingStatus
+  dueAt          DateTime          @map("due_at") @db.Timestamptz(6)
+  paidAt         DateTime?         @map("paid_at") @db.Timestamptz(6)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime?         @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt      DateTime?         @map("deleted_at") @db.Timestamptz(6)
 
-  @@index([idempotencyKey, status])
-  @@index([lockedUntil])
+  subscription   UserSubscription  @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+
+  @@index([subscriptionId])
+  @@map("saas_billing")
+}
+
+model BillingExecution {
+  id                   String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId            String                @map("invoice_id") @db.Uuid
+  ruleId               String                @map("rule_id") @db.Uuid
+  templateId           String                @map("template_id") @db.Uuid
+  channel              ChannelType
+  status               ExecutionStatus
+  attemptedAt          DateTime              @default(now()) @map("attempted_at") @db.Timestamptz(6)
+  sentAt               DateTime?             @map("sent_at") @db.Timestamptz(6)
+  errorMessage         String?               @map("error_message") @db.Text
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime?             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  invoice              Invoice               @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  rule                 BillingRule           @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  template             MessageTemplate       @relation(fields: [templateId], references: [id], onDelete: Restrict)
+  deduplicationJournal DeduplicationJournal?
+
+  @@index([invoiceId, status])
+  @@map("billing_execution")
+}
+
+model RecoveryTakeRate {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId        String    @unique @map("invoice_id") @db.Uuid
+  recoveredAmount  Decimal   @map("recovered_amount") @db.Decimal(12, 2)
+  ratePercent      Decimal   @map("rate_percent") @db.Decimal(5, 2)
+  commissionAmount Decimal   @map("commission_amount") @db.Decimal(12, 2)
+  recoveredAt      DateTime  @map("recovered_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  invoice          Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@map("recovery_take_rate")
+}
+
+// ==============================================================================
+// 6. TABELAS DE RESILIÊNCIA E INTEGRAÇÃO (DEDUPLICAÇÃO E OUTBOX)
+// ==============================================================================
+
+model DeduplicationJournal {
+  eventId      String            @id @map("event_id") @db.VarChar(150)
+  invoiceId    String            @map("invoice_id") @db.Uuid
+  triggerDay   DateTime          @map("trigger_day") @db.Date
+  ruleId       String?           @map("rule_id") @db.Uuid
+  executionId  String?           @unique @map("execution_id") @db.Uuid
+  processedAt  DateTime          @default(now()) @map("processed_at") @db.Timestamptz(6)
+
+  invoice      Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  rule         BillingRule?      @relation(fields: [ruleId], references: [id], onDelete: Restrict)
+  execution    BillingExecution? @relation(fields: [executionId], references: [id], onDelete: Restrict)
+
+  @@unique([invoiceId, triggerDay])
+  @@index([invoiceId])
   @@map("deduplication_journal")
+}
+
+model OutboxEvent {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  aggregateType String    @map("aggregate_type") @db.VarChar(100)
+  aggregateId   String    @map("aggregate_id") @db.Uuid
+  eventType     String    @map("event_type") @db.VarChar(100)
+  payload       Json      @db.JsonB
+  processedAt   DateTime? @map("processed_at") @db.Timestamptz(6)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+  @@map("outbox_events")
+}
+
+// ==============================================================================
+// 7. MÓDULO DE PORTFÓLIO, CONTRATOS, PROJETOS E SCORE
+// ==============================================================================
+
+model FreelancerPortfolio {
+  userId       String    @id @map("user_id") @db.Uuid
+  photoUrl     String?   @map("photo_url") @db.VarChar(255)
+  phone        String?   @db.VarChar(50)
+  websiteUrl   String?   @map("website_url") @db.VarChar(255)
+  overallScore Decimal   @default(0.00) @map("overall_score") @db.Decimal(12, 2)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("freelancer_portfolio")
+}
+
+model Contract {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                   String                    @map("user_id") @db.Uuid
+  clientId                 String                    @map("client_id") @db.Uuid
+  title                    String                    @db.VarChar(255)
+  description              String?                   @db.Text
+  contractValue            Decimal                   @map("contract_value") @db.Decimal(12, 2)
+  status                   ContractStatus            @default(PENDING_SIGNATURE)
+  startDate                DateTime                  @map("start_date") @db.Date
+  endDate                  DateTime?                 @map("end_date") @db.Date
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime?                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt                DateTime?                 @map("deleted_at") @db.Timestamptz(6)
+
+  user                     User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  client                   Client                    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  cycleEvaluationContracts CycleEvaluationContract[]
+
+  @@index([userId])
+  @@index([clientId])
+  @@map("contract")
+}
+
+model Project {
+  id                  String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId              String           @map("user_id") @db.Uuid
+  clientId            String           @map("client_id") @db.Uuid
+  name                String           @db.VarChar(255)
+  description         String?          @db.Text
+  startDate           DateTime         @map("start_date") @db.Date
+  endDate             DateTime?        @map("end_date") @db.Date
+  isPublicClientName  Boolean          @default(false) @map("is_public_client_name")
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime?        @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt           DateTime?        @map("deleted_at") @db.Timestamptz(6)
+
+  user                User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  client              Client           @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  feedback            ProjectFeedback?
+
+  @@index([userId])
+  @@index([clientId])
+  @@map("project")
+}
+
+model ProjectFeedback {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String    @unique @map("project_id") @db.Uuid
+  score     Decimal   @db.Decimal(12, 2)
+  comments  String?   @db.Text
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime? @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Restrict)
+
+  @@map("project_feedback")
+}
+
+model CycleEvaluation {
+  id                       String                    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                   String                    @map("user_id") @db.Uuid
+  clientId                 String                    @map("client_id") @db.Uuid
+  cycleIdentifier          String                    @unique @map("cycle_identifier") @db.VarChar(150)
+  scoreCommunication       Decimal                   @map("score_communication") @db.Decimal(12, 2)
+  scoreProactivity         Decimal                   @map("score_proactivity") @db.Decimal(12, 2)
+  scoreResults             Decimal                   @map("score_results") @db.Decimal(12, 2)
+  scoreUnderstanding       Decimal                   @map("score_understanding") @db.Decimal(12, 2)
+  generalScore             Decimal                   @map("general_score") @db.Decimal(12, 2)
+  comments                 String?                   @db.Text
+  createdAt                DateTime                  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime?                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user                     User                      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  client                   Client                    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  cycleEvaluationContracts CycleEvaluationContract[]
+
+  @@index([userId, clientId])
+  @@map("cycle_evaluation")
+}
+
+model CycleEvaluationContract {
+  cycleEvaluationId String          @map("cycle_evaluation_id") @db.Uuid
+  contractId        String          @map("contract_id") @db.Uuid
+  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  cycleEvaluation   CycleEvaluation @relation(fields: [cycleEvaluationId], references: [id], onDelete: Cascade)
+  contract          Contract        @relation(fields: [contractId], references: [id], onDelete: Restrict)
+
+  @@id([cycleEvaluationId, contractId])
+  @@index([cycleEvaluationId])
+  @@index([contractId])
+  @@map("cycle_evaluation_contract")
 }
