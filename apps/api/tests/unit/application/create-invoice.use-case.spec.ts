@@ -12,7 +12,7 @@ describe('CreateInvoiceUseCase (ACID Transaction & Ledger Integration)', () => {
     useCase = new CreateInvoiceUseCase(uow);
   });
 
-  it('deve criar a fatura e persistir simultaneamente os lançamentos balanceados no Ledger', async () => {
+  it('deve criar a fatura e persistir simultaneamente os lançamentos balanceados no Ledger e o evento no Outbox', async () => {
     const userId = randomUUID();
 
     const output = await useCase.execute({
@@ -54,5 +54,13 @@ describe('CreateInvoiceUseCase (ACID Transaction & Ledger Integration)', () => {
 
     expect(totalDebit.toDatabaseDecimal()).toBe('10000.00');
     expect(totalCredit.toDatabaseDecimal()).toBe('10000.00');
+
+    // 3. Verifica se o evento transacional do Outbox foi gravado para sincronização CQRS
+    const pendingEvents = await uow.outboxRepository.fetchPendingEvents();
+    expect(pendingEvents.length).toBe(1);
+    expect(pendingEvents[0].eventType).toBe('INVOICE_CREATED');
+    expect(pendingEvents[0].aggregateId).toBe(output.id);
+    expect(pendingEvents[0].userId).toBe(userId);
+    expect(pendingEvents[0].payload['clientName']).toBe('Design Systems Inc');
   });
 });

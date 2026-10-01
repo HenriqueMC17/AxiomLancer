@@ -31,7 +31,7 @@ describe('SettleInvoiceUseCase (Payment Receipt & Virtual Safe Split)', () => {
     await uow.invoiceRepository.save(invoice);
   });
 
-  it('deve liquidar a fatura, atualizar para PAID e registrar o split contábil no Ledger', async () => {
+  it('deve liquidar a fatura, atualizar para PAID, registrar o split contábil e gravar evento no Outbox', async () => {
     const output = await useCase.execute({
       invoiceId,
       userId,
@@ -52,6 +52,14 @@ describe('SettleInvoiceUseCase (Payment Receipt & Virtual Safe Split)', () => {
     // Verifica lançamentos no Ledger (Baixa de títulos, entrada bancária e reserva fiscal)
     const txs = await uow.ledgerRepository.findByUserId(userId);
     expect(txs.length).toBe(3);
+
+    // Verifica gravação do evento transacional no Outbox
+    const pendingEvents = await uow.outboxRepository.fetchPendingEvents();
+    expect(pendingEvents.length).toBe(1);
+    expect(pendingEvents[0].eventType).toBe('INVOICE_SETTLED');
+    expect(pendingEvents[0].aggregateId).toBe(invoiceId);
+    expect(pendingEvents[0].userId).toBe(userId);
+    expect(pendingEvents[0].payload['status']).toBe('PAID');
   });
 
   it('deve rejeitar tentativa de liquidação por outro usuário', async () => {

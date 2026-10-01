@@ -3,6 +3,7 @@ export * from './invoice.entity';
 export * from './expense.entity';
 export * from './ledger-transaction.entity';
 export * from './deduplication-journal.entity';
+export * from './outbox-event.entity';
 export * from '../../modules/crm/domain/entities/client.entity';
 export * from '../../modules/crm/domain/entities/contract.entity';
 export * from '../../modules/crm/domain/entities/project.entity';

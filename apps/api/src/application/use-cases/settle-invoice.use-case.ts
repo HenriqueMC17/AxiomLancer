@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto';
 import { IUnitOfWork } from '../ports/unit-of-work.interface';
 import { LedgerPostingService } from '../../domain/services/ledger-posting.service';
 import { EntityNotFoundError, DomainError } from '../../domain/errors/domain.error';
+import { OutboxEvent } from '../../domain/entities/outbox-event.entity';
 
 export interface SettleInvoiceInputDTO {
   invoiceId: string;
@@ -57,6 +58,27 @@ export class SettleInvoiceUseCase {
       );
 
       await txUow.ledgerRepository.saveBatch(batch.transactions);
+
+      // Registra evento transacional no Outbox para sincronização com Convex Cloud
+      const outboxEvent = new OutboxEvent({
+        id: randomUUID(),
+        userId: invoice.userId,
+        aggregateType: 'INVOICE',
+        aggregateId: invoice.id,
+        eventType: 'INVOICE_SETTLED',
+        payload: {
+          invoiceId: invoice.id,
+          userId: invoice.userId,
+          status: 'PAID',
+          paidAt: invoice.paidAt!.toISOString(),
+          netDeposited: invoice.netAmount.toDatabaseDecimal(),
+          taxReservedInSafe: invoice.taxAmount.toDatabaseDecimal(),
+          receivablesCleared: invoice.grossAmount.toDatabaseDecimal(),
+        },
+        createdAt: new Date(),
+      });
+
+      await txUow.outboxRepository.save(outboxEvent);
 
       return {
         invoiceId: invoice.id,

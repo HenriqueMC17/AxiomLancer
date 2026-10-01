@@ -3,15 +3,18 @@ import { IInvoiceRepository } from '../../src/domain/repositories/invoice-reposi
 import { ILedgerRepository } from '../../src/domain/repositories/ledger-repository.interface';
 import { IExpenseRepository } from '../../src/domain/repositories/expense-repository.interface';
 import { IDeduplicationJournalRepository } from '../../src/domain/repositories/deduplication-journal-repository.interface';
+import { IOutboxRepository } from '../../src/domain/repositories/outbox-repository.interface';
 import { MockInvoiceRepository } from './mock-invoice-repository';
 import { MockLedgerRepository } from './mock-ledger-repository';
 import { MockDeduplicationRepository } from './mock-deduplication-repository';
+import { MockOutboxRepository } from './mock-outbox-repository';
 
 export class MockUnitOfWork implements IUnitOfWork {
   public invoiceRepository: IInvoiceRepository;
   public ledgerRepository: ILedgerRepository;
   public expenseRepository: IExpenseRepository;
   public deduplicationJournalRepository: IDeduplicationJournalRepository;
+  public outboxRepository: IOutboxRepository;
 
   constructor() {
     this.invoiceRepository = new MockInvoiceRepository();
@@ -22,6 +25,7 @@ export class MockUnitOfWork implements IUnitOfWork {
       save: async () => {},
     };
     this.deduplicationJournalRepository = new MockDeduplicationRepository();
+    this.outboxRepository = new MockOutboxRepository();
   }
 
   public async executeInTransaction<T>(work: (uow: IUnitOfWork) => Promise<T>): Promise<T> {

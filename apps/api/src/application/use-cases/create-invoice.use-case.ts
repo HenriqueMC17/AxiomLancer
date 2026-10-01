@@ -3,7 +3,7 @@ import { IUnitOfWork } from '../ports/unit-of-work.interface';
 import { InvoiceGenerationService } from '../../domain/services/invoice-generation.service';
 import { LedgerPostingService } from '../../domain/services/ledger-posting.service';
 import { CreateInvoiceInputDTO, InvoiceResponseDTO } from '../dtos/invoice.dto';
-import { Money } from '../../domain/value-objects/money.vo';
+import { OutboxEvent } from '../../domain/entities/outbox-event.entity';
 
 export class CreateInvoiceUseCase {
   constructor(
@@ -54,6 +54,30 @@ export class CreateInvoiceUseCase {
 
         await txUow.ledgerRepository.saveBatch(batch.transactions);
       }
+
+      // 3. Registra evento no Outbox para sincronização CQRS com o Convex Cloud
+      const outboxEvent = new OutboxEvent({
+        id: randomUUID(),
+        userId: invoice.userId,
+        aggregateType: 'INVOICE',
+        aggregateId: invoice.id,
+        eventType: 'INVOICE_CREATED',
+        payload: {
+          id: invoice.id,
+          userId: invoice.userId,
+          clientName: invoice.clientName,
+          clientTaxId: invoice.clientTaxId,
+          grossAmount: invoice.grossAmount.toDatabaseDecimal(),
+          taxAmount: invoice.taxAmount.toDatabaseDecimal(),
+          netAmount: invoice.netAmount.toDatabaseDecimal(),
+          status: invoice.status.getValue(),
+          dueDate: invoice.dueDate.toISOString().split('T')[0],
+          issuedAt: invoice.issuedAt ? invoice.issuedAt.toISOString() : null,
+        },
+        createdAt: new Date(),
+      });
+
+      await txUow.outboxRepository.save(outboxEvent);
     });
 
     return {

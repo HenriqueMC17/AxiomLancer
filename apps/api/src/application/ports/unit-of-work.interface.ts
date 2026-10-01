@@ -2,12 +2,14 @@ import { IInvoiceRepository } from '../../domain/repositories/invoice-repository
 import { ILedgerRepository } from '../../domain/repositories/ledger-repository.interface';
 import { IExpenseRepository } from '../../domain/repositories/expense-repository.interface';
 import { IDeduplicationJournalRepository } from '../../domain/repositories/deduplication-journal-repository.interface';
+import { IOutboxRepository } from '../../domain/repositories/outbox-repository.interface';
 
 export interface IUnitOfWork {
   invoiceRepository: IInvoiceRepository;
   ledgerRepository: ILedgerRepository;
   expenseRepository: IExpenseRepository;
   deduplicationJournalRepository: IDeduplicationJournalRepository;
+  outboxRepository: IOutboxRepository;
 
   /**
    * Executa uma sequência de operações dentro de uma transação ACID estrita no PostgreSQL.

@@ -3,6 +3,7 @@ export * from './invoice-repository.interface';
 export * from './ledger-repository.interface';
 export * from './expense-repository.interface';
 export * from './deduplication-journal-repository.interface';
+export * from './outbox-repository.interface';
 export * from '../../modules/crm/domain/repositories/client-repository.interface';
 export * from '../../modules/crm/domain/repositories/contract-repository.interface';
 export * from '../../modules/crm/domain/repositories/project-repository.interface';
