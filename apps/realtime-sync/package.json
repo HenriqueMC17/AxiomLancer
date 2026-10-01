@@ -1,0 +1,13 @@
+{
+  "name": "@axiom/realtime-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Camada de projeção reativa em tempo real e sync (Convex Cloud)",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "^1.19.3"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "name": "@axiom/api",
+  "version": "1.0.0",
+  "description": "Núcleo Financeiro (Core Ledger & Motor de Faturamento) do AxiomLancer",
+  "main": "src/interfaces/http/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/interfaces/http/server.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/interfaces/http/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev"
+  },
+  "keywords": [
+    "fintech",
+    "ledger",
+    "invoicing",
+    "fastify",
+    "clean-architecture",
+    "ddd",
+    "decimal.js",
+    "prisma"
+  ],
+  "author": "AxiomLancer Enterprise Architecture Team",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@axiom/contracts": "*",
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/cors": "^11.3.0",
+    "@fastify/jwt": "^10.2.2",
+    "@prisma/client": "^6.4.1",
+    "bullmq": "^5.41.6",
+    "decimal.js": "^10.5.0",
+    "fastify": "^5.2.1",
+    "fastify-type-provider-zod": "^4.0.2",
+    "ioredis": "^5.6.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.9",
+    "@vitest/coverage-v8": "^3.0.7",
+    "dotenv": "^16.4.7",
+    "prisma": "^6.4.1",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}

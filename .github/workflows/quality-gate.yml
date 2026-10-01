@@ -1,0 +1,41 @@
+name: Enterprise Quality Gate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  audit-and-validate:
+    name: Monorepo Quality Gate & Verification
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [22.x]
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm install
+
+      - name: Build Contracts (SSOT)
+        run: npm run build --workspace=@axiom/contracts
+
+      - name: Typecheck Monorepo
+        run: npm run typecheck --if-present
+
+      - name: Run Backend Unit & Integration Tests (100% Pass Required)
+        run: npm run test --workspace=@axiom/api
+
+      - name: Build Angular Frontend (Enterprise Production Bundle)
+        run: npm run build --workspace=@axiom/web

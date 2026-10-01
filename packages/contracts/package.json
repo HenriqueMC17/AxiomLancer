@@ -1,0 +1,25 @@
+{
+  "name": "@axiom/contracts",
+  "version": "1.0.0",
+  "description": "Single Source of Truth (SSOT) para DTOs, schemas e contratos de domínio do AxiomLancer",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@axiom/tsconfig": "*",
+    "typescript": "^5.7.3"
+  }
+}

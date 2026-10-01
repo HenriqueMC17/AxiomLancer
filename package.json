@@ -2,12 +2,26 @@
   "name": "axiomlancer",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@11.12.1",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm start --prefix frontend",
-    "build:frontend": "npm run build --prefix frontend",
-    "convex:dev": "convex dev",
-    "convex:deploy": "convex deploy"
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "dev": "turbo run dev",
+    "dev:api": "npm run dev --workspace=@axiom/api",
+    "dev:web": "npm run dev --workspace=@axiom/web",
+    "test:api": "npm run test --workspace=@axiom/api",
+    "build:web": "npm run build --workspace=@axiom/web",
+    "convex:dev": "convex dev --dir apps/realtime-sync",
+    "convex:deploy": "convex deploy --dir apps/realtime-sync"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.4"
   },
   "dependencies": {
     "convex": "^1.19.3"
