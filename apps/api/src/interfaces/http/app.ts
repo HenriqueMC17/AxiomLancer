@@ -23,28 +23,29 @@ import { GetInvoiceByIdUseCase } from '../../application/use-cases/get-invoice-b
 import { ProcessBillingTriggerUseCase } from '../../application/use-cases/process-billing-trigger.use-case';
 import { CalculateTaxesUseCase } from '../../application/use-cases/calculate-taxes.use-case';
 import { GetDashboardSummaryUseCase } from '../../application/use-cases/get-dashboard-summary.use-case';
+import { env } from '../../infrastructure/config/env';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = fastify({
-    logger: process.env.NODE_ENV === 'test' ? false : true,
+    logger: env.NODE_ENV === 'test' ? false : true,
   });
 
   // 1. CORS configurado com credentials: true para suporte ao BFF e Angular
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:4200',
+    origin: env.CORS_ORIGIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
 
   // 2. Cookie parser com chave secreta de assinatura
   await app.register(cookie, {
-    secret: process.env.COOKIE_SECRET || 'axiomlancer_default_development_secret_cookie_sign_32chars!',
+    secret: env.COOKIE_SECRET,
     hook: 'onRequest',
   });
 
   // 3. JWT para geração e decodificação segura
   await app.register(jwt, {
-    secret: process.env.JWT_SECRET || 'axiomlancer_default_jwt_secret_dev_32chars_minimum!',
+    secret: env.JWT_SECRET,
   });
 
   // 4. Plugin BFF de Sessão com Cookies HttpOnly / SameSite=Strict

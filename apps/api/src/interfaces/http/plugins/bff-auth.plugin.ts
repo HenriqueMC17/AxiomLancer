@@ -8,6 +8,8 @@ declare module 'fastify' {
       userId: string;
       email: string;
       role?: string;
+      name?: string;
+      onboardingStatus?: string;
     };
   }
   interface FastifyReply {

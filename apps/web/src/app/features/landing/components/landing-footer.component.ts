@@ -6,12 +6,44 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <footer class="py-12 px-4 border-t border-white/10 text-center text-xs text-slate-500 font-mono">
-      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+    <footer class="landing-footer">
+      <div class="footer-inner">
         <span>© 2026 AxiomLancer FinTech Core. Iniciativa 7Keys Engineering.</span>
-        <span>Conformidade estrita LGPD & BACEN PIX Dinâmico.</span>
+        <span>Conformidade estrita LGPD &amp; BACEN PIX Dinâmico.</span>
       </div>
     </footer>
   `,
+  styles: [`
+    :host {
+      display: block;
+      background-color: #0e0f12;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .landing-footer {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        text-align: left;
+      }
+    }
+  `],
 })
 export class LandingFooterComponent {}

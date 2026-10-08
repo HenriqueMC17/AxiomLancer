@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { FinanceService } from '../../../core/services/finance.service';
 
@@ -22,13 +22,23 @@ import { FinanceService } from '../../../core/services/finance.service';
               <span>Painel Financeiro Executivo</span>
               <span class="badge badge-emerald text-[10px]">LIVE CORE</span>
             </h1>
-            <span class="text-xs font-mono text-slate-400">
-              Sessão BFF: {{ authService.currentUser()?.email || 'freelancer.pro@axiomlancer.dev' }}
-            </span>
+            <div class="flex items-center gap-2 mt-0.5">
+              <span class="text-xs font-mono text-slate-300 font-semibold">
+                {{ authService.currentUser()?.name || 'Freelancer Pro' }}
+              </span>
+              <span class="text-[10px] font-mono text-slate-500">
+                ({{ authService.currentUser()?.email || 'freelancer.pro@axiomlancer.dev' }})
+              </span>
+              @if (authService.currentUser()?.taxId) {
+                <span class="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                  DOC: {{ authService.currentUser()?.taxId }}
+                </span>
+              }
+            </div>
           </div>
         </div>
 
-        <!-- Ações Rápidas & Botão de Pânico -->
+        <!-- Ações Rápidas, Botão de Pânico & Logout -->
         <div class="flex flex-wrap items-center gap-3">
           <!-- Botão de Pânico Safe Mode -->
           <button
@@ -56,6 +66,14 @@ import { FinanceService } from '../../../core/services/finance.service';
             class="btn-secondary text-xs py-2 px-3 rounded-lg">
             <span>- Despesa (OPEX)</span>
           </button>
+
+          <!-- Sair / Logout -->
+          <button
+            (click)="handleLogout()"
+            title="Encerrar Sessão"
+            class="text-xs font-mono text-slate-400 hover:text-rose-400 py-2 px-3 rounded-lg border border-white/10 hover:border-rose-500/30 transition-colors cursor-pointer">
+            <span>Sair ⎋</span>
+          </button>
         </div>
       </div>
     </header>
@@ -64,7 +82,14 @@ import { FinanceService } from '../../../core/services/finance.service';
 export class DashboardHeaderComponent {
   public authService = inject(AuthService);
   public financeService = inject(FinanceService);
+  private router = inject(Router);
 
   @Output() openCreateInvoice = new EventEmitter<void>();
   @Output() openCreateExpense = new EventEmitter<void>();
+
+  public async handleLogout(): Promise<void> {
+    await this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }
+

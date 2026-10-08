@@ -32,7 +32,7 @@ import {
     ExpenseModalComponent,
   ],
   template: `
-    <div class="min-h-screen bg-[#07090e] text-slate-100 pb-16">
+    <div class="min-h-screen bg-[#121212] text-slate-100 pb-16">
       
       <!-- 1. Top Cockpit Header -->
       <app-dashboard-header
