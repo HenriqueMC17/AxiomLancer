@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -49,9 +49,11 @@ import { ToastService } from '../../../core/services/toast.service';
         <div class="nav-right-actions">
           <nav class="nav-links">
             <a href="#features" class="nav-link-item">Funcionalidades</a>
-            <a href="#roi" class="nav-link-item">Calculadora ROI</a>
+            <a href="#tech-specs" class="nav-link-item">Arquitetura</a>
+            <a href="#roi" class="nav-link-item">Calculadora</a>
             <a href="#panic" class="nav-link-item">Botão de Pânico</a>
             <a href="#pricing" class="nav-link-item">Preços</a>
+            <a href="#faq" class="nav-link-item">FAQ</a>
           </nav>
 
           <div class="cta-buttons-header">
@@ -62,11 +64,53 @@ import { ToastService } from '../../../core/services/toast.service';
               </a>
             } @else {
               <a routerLink="/login" class="btn-outline-header">Entrar</a>
-              <a routerLink="/dashboard" class="btn-mint-header">Acessar Demonstração</a>
+              <a routerLink="/dashboard" class="btn-mint-header">Acessar Cockpit</a>
             }
+
+            <!-- Botão Menu Mobile -->
+            <button
+              type="button"
+              (click)="isMobileMenuOpen.set(!isMobileMenuOpen())"
+              class="mobile-menu-btn cursor-pointer lg:hidden"
+              aria-label="Abrir menu de navegação">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                @if (isMobileMenuOpen()) {
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                } @else {
+                  <line x1="4" y1="12" x2="20" y2="12"/>
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="4" y1="18" x2="20" y2="18"/>
+                }
+              </svg>
+            </button>
           </div>
         </div>
       </div>
+
+      <!-- Drawer de Navegação Mobile -->
+      @if (isMobileMenuOpen()) {
+        <div class="mobile-drawer-backdrop" (click)="isMobileMenuOpen.set(false)">
+          <div class="mobile-drawer-card" (click)="$event.stopPropagation()">
+            <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
+              <span class="text-xs font-mono font-bold text-slate-300">NAVEGAÇÃO RÁPIDA</span>
+              <button (click)="isMobileMenuOpen.set(false)" class="text-slate-400 hover:text-white text-base">✕</button>
+            </div>
+            <nav class="flex flex-col gap-2 font-mono text-xs">
+              <a href="#features" (click)="isMobileMenuOpen.set(false)" class="mobile-link">⚡ Funcionalidades</a>
+              <a href="#tech-specs" (click)="isMobileMenuOpen.set(false)" class="mobile-link">🛠️ Arquitetura &amp; Specs</a>
+              <a href="#roi" (click)="isMobileMenuOpen.set(false)" class="mobile-link">📊 Calculadora ROI</a>
+              <a href="#panic" (click)="isMobileMenuOpen.set(false)" class="mobile-link">🚨 Botão de Pânico 12ms</a>
+              <a href="#pricing" (click)="isMobileMenuOpen.set(false)" class="mobile-link">💎 Planos &amp; Preços</a>
+              <a href="#faq" (click)="isMobileMenuOpen.set(false)" class="mobile-link">❓ Perguntas Frequentes</a>
+            </nav>
+            <div class="pt-4 mt-4 border-t border-white/10 flex flex-col gap-2">
+              <a routerLink="/login" (click)="isMobileMenuOpen.set(false)" class="btn-outline-header text-center w-full block">Entrar na Conta</a>
+              <a routerLink="/login" [queryParams]="{ mode: 'register' }" (click)="isMobileMenuOpen.set(false)" class="btn-mint-header text-center w-full block">Criar Conta Gratuita</a>
+            </div>
+          </div>
+        </div>
+      }
     </header>
 
     <!-- 2. Hero Section (Destaque Principal) -->
@@ -778,11 +822,79 @@ import { ToastService } from '../../../core/services/toast.service';
       line-height: 1.4;
       display: block;
     }
+
+    /* Mobile Menu Drawer Styles */
+    .mobile-menu-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.5rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      transition: all 0.15s ease;
+    }
+    .mobile-menu-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+
+    .mobile-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      justify-content: flex-end;
+      animation: fadeInBackdrop 0.2s ease;
+    }
+
+    .mobile-drawer-card {
+      width: 85%;
+      max-width: 320px;
+      height: 100%;
+      background: #181920;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+      animation: slideDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .mobile-link {
+      padding: 0.75rem 0.9rem;
+      border-radius: 0.5rem;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .mobile-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #34d399;
+    }
+
+    @keyframes fadeInBackdrop {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideDrawer {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
   `],
 })
 export class HeroSectionComponent {
   public authService = inject(AuthService);
   private toastService = inject(ToastService);
+  public isMobileMenuOpen = signal<boolean>(false);
 
   public triggerPanicSimulation(): void {
     this.toastService.show(

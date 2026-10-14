@@ -5,9 +5,11 @@ import {
   SocialProofComponent,
   PersonaSelectorComponent,
   BentoFeaturesComponent,
+  TechSpecsComponent,
   RoiCalculatorComponent,
   PanicSandboxComponent,
   PricingMatrixComponent,
+  FaqAccordionComponent,
   LandingFooterComponent,
 } from '../../features/landing/components';
 
@@ -20,9 +22,11 @@ import {
     SocialProofComponent,
     PersonaSelectorComponent,
     BentoFeaturesComponent,
+    TechSpecsComponent,
     RoiCalculatorComponent,
     PanicSandboxComponent,
     PricingMatrixComponent,
+    FaqAccordionComponent,
     LandingFooterComponent,
   ],
   template: `
@@ -30,9 +34,11 @@ import {
     <app-social-proof />
     <app-persona-selector />
     <app-bento-features />
+    <app-tech-specs />
     <app-roi-calculator />
     <app-panic-sandbox />
     <app-pricing-matrix />
+    <app-faq-accordion />
     <app-landing-footer />
   `,
 })

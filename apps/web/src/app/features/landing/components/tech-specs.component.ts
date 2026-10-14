@@ -195,7 +195,7 @@ interface SpecTab {
 
     .shell-body {
       display: grid;
-      grid-cols-1;
+      grid-template-columns: 1fr;
     }
 
     @media (min-width: 900px) {

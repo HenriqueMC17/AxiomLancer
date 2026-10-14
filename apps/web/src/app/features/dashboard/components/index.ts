@@ -7,3 +7,4 @@ export * from './invoices-table.component';
 export * from './ledger-audit-table.component';
 export * from './invoice-modal.component';
 export * from './expense-modal.component';
+export * from './invoice-detail-modal.component';
