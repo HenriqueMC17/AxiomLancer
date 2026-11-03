@@ -1,39 +1,112 @@
-# AxiomLancer Monorepo Root .gitignore
+﻿# ==============================================================================
+# AxiomLancer - Enterprise .gitignore
+# Next.js 15+ (App Router) | React 19 | TypeScript | PNPM | Convex | 7Keys
+# ==============================================================================
 
-# Dependencies
-node_modules/
-.pnp
-.pnp.js
-.yarn/cache
+# 1. Dependências de Pacotes
+/node_modules
+/.pnpm-store
+.pnpm-debug.log*
 
-# Build outputs
-.next/
-out/
-build/
-dist/
-.angular/
+# 2. Build, Cache e Artefatos do Next.js
+/.next/
+/out/
+/build
+/dist
+.turbo/
 *.tsbuildinfo
+next-env.d.ts
+.eslintcache
 
-# Environment & Secrets
+# 3. Convex (Database Reativo Serverless)
+# Cache local e credenciais temporárias do CLI do Convex
+.convex/
+# Nota: A pasta convex/_generated permanece rastreada para garantir autocomplete
+# e type-safety imediato mesmo em ambientes de CI/CD sem conexão prévia.
+
+# 4. Variáveis de Ambiente e Segredos (NUNCA comitar chaves/segredos)
+# Inclui CONVEX_DEPLOY_KEY, JWT_SECRET, chaves PIX e tokens bancários
 .env
 .env*.local
-.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.pem
 *.key
+*.cert
+*.crt
 
-# Testing & Coverage
-coverage/
-*.lcov
+# Preservar arquivos de exemplo/template de configuração
+! .env.example
+! .env.template
 
-# Logs & Temp
+# 5. Logs de Execução e Debuggers
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.turbo/
-.cache/
+pnpm-debug.log*
 
-# OS metadata
-.DS_Store
+# 6. Vercel & Cloud Provider Deployments
+.vercel
+
+# 7. Testes, Relatórios e Cobertura de Código
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+junit.xml
+
+# 8. IDEs, Editores e Arquivos do Sistema Operacional
+# VSCode
+.vscode/*
+! .vscode/settings.json
+! .vscode/tasks.json
+! .vscode/launch.json
+! .vscode/extensions.json
+*.code-workspace
+
+# JetBrains / IntelliJ / WebStorm
+.idea/
+*.iml
+*.iws
+
+# Arquivos temporários e backups de editores
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# Sistema Operacional - Windows
 Thumbs.db
-Desktop.ini
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Sistema Operacional - macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Sistema Operacional - Linux
+*~
+
+# 9. Arquivos Temporários de Banco e Dumps Locais
+*.sqlite
+*.sqlite3
+*.db-journal
+*.dump
+*.sql.gz
+*.sql.tar
+# Nota: AxiomLancer.sql permanece rastreado como schema mestre da arquitetura
+.vercel
+.env*

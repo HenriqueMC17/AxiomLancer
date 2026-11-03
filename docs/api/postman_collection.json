@@ -1,0 +1,337 @@
+{
+  "info": {
+    "name": "AxiomLancer SaaS - API Collection",
+    "_postman_id": "a98e72c4-142f-419b-a0d4-839217b189a1",
+    "description": "Colecao oficial de requisicoes RESTful da plataforma AxiomLancer: Templates, Contratos e Cobranca.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Listar Templates (GET)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/message-templates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "message-templates"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Criar Template (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"channel\": \"EMAIL\",\n  \"tone_of_voice\": \"AMIGAVEL\",\n  \"subject\": \"Lembrete: Fatura {{invoice_number}} vence amanha\",\n  \"body\": \"Ola {{client_name}}, sua fatura no valor de {{gross_value}} vence em {{due_date}}. Utilize o PIX: {{pix_key}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/message-templates",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "message-templates"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Atualizar Template (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"Notificacao Urgente de Vencimento\",\n  \"tone_of_voice\": \"FIRME\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/message-templates/{{templateId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "message-templates",
+            "{{templateId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Remover Template (DELETE)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/message-templates/{{templateId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "message-templates",
+            "{{templateId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Listar Contratos (GET)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/contracts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "contracts"
+          ]
+        },
+        "description": "Retorna a listagem isolada de contratos vinculados ao freelancer logado."
+      }
+    },
+    {
+      "name": "Emitir Novo Contrato (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"client_id\": \"cli_acme\",\n  \"title\": \"Desenvolvimento de Motor de Cobranca Autonoma\",\n  \"description\": \"Construcao de esteira deterministica de faturamento com split de impostos e PIX.\",\n  \"contract_value\": 24500,\n  \"start_date\": \"2026-03-01\",\n  \"end_date\": \"2026-08-31\",\n  \"terms_clause\": \"Clausula 1: O escopo compreende o desenvolvimento das esteiras financeiras em TypeScript. Clausula 2: Pagamentos liberados a cada entrega.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contracts",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "contracts"
+          ]
+        },
+        "description": "Emite minuta de contrato com calculo monetario preciso via decimal.js."
+      }
+    },
+    {
+      "name": "Aceite Digital de Contrato (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"signer_name\": \"Carlos Eduardo Menezes\",\n  \"signer_email\": \"carlos@acmedev.io\",\n  \"confirm_terms\": true\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contracts/cnt_02/accept",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "contracts",
+            "cnt_02",
+            "accept"
+          ]
+        },
+        "description": "Registra aceite formal do contratante, gerando carimbo de data/hora e hash SHA-256 de nao-repudio."
+      }
+    },
+    {
+      "name": "Atualizar Minuta de Contrato (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Implementacao de Smart Escrows & Auditoria (Revisado)\",\n  \"contract_value\": 19500\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/contracts/cnt_02",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "contracts",
+            "cnt_02"
+          ]
+        },
+        "description": "Atualiza termos enquanto o contrato estiver em PENDING_SIGNATURE."
+      }
+    },
+    {
+      "name": "Remover Minuta de Contrato (DELETE)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/contracts/cnt_02",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "contracts",
+            "cnt_02"
+          ]
+        },
+        "description": "Remove minuta de contrato se ainda nao tiver sido assinado."
+      }
+    },
+    {
+      "name": "Listar Avaliações de Ciclo (GET)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Cookie",
+            "value": "axiom_session={{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/cycle-evaluations",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "cycle-evaluations"
+          ]
+        },
+        "description": "Lista todas as avaliacoes de ciclo recorrentes do freelancer autenticado."
+      }
+    },
+    {
+      "name": "Disparar Avaliação de Ciclo (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "axiom_session={{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"client_id\": \"cli_acme\",\n  \"trigger_type\": \"MANUAL\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/cycle-evaluations/trigger",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "cycle-evaluations",
+            "trigger"
+          ]
+        },
+        "description": "Dispara avaliacao de ciclo manualmente, gerando o token seguro de convite."
+      }
+    },
+    {
+      "name": "Buscar Convite de Ciclo por Token (GET - Público)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/cycle-evaluations/tkn_seed_cycle001_acme",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "cycle-evaluations",
+            "tkn_seed_cycle001_acme"
+          ]
+        },
+        "description": "Rota publica acessada pelo cliente para ler os metadados do ciclo."
+      }
+    },
+    {
+      "name": "Submeter Avaliação de Ciclo (POST - Público)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"score_communication\": 5,\n  \"score_proactivity\": 4.8,\n  \"score_results\": 5,\n  \"score_understanding\": 4.9,\n  \"score_demand_delivery\": 5,\n  \"comments\": \"Trabalho impecavel, excelente comunicacao e entendimento do escopo do projeto.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/cycle-evaluations/tkn_seed_cycle001_acme",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "cycle-evaluations",
+            "tkn_seed_cycle001_acme"
+          ]
+        },
+        "description": "Submissao publica do formulario de avaliacao de ciclo pelo cliente com validacao Fail Fast Zod."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "templateId",
+      "value": "tmpl_email_amigavel"
+    }
+  ]
+}

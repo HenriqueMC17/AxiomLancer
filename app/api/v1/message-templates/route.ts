@@ -1,0 +1,1 @@
+export { GET, POST } from "@/app/api/message-templates/route";
