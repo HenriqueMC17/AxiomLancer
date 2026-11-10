@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+﻿import { describe, it, expect, beforeEach } from "vitest";
 import { createContractSchema, updateContractSchema, acceptContractSchema } from "@/core/domain/schemas";
-import { ContractService } from "@/core/services/contract.service";
+import { ContractService } from '@/core/services/contract.service';
+import { InMemoryContractRepository } from '@/infrastructure/repositories/in-memory/in-memory-contract.repository';
 import { Database } from "@/lib/db";
 import { ValidationError, NotFoundError, BusinessRuleViolationError } from "@/core/errors/app-error";
 
@@ -10,7 +11,7 @@ describe("Contract Management & Digital Acceptance Domain", () => {
   const foreignUserId = "usr_contract_test_02";
 
   beforeEach(() => {
-    service = new ContractService();
+    service = new ContractService(new InMemoryContractRepository());
   });
 
   describe("Zod Contract Schema Validation (Fail Fast on Edge)", () => {

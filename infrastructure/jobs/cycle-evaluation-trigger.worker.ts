@@ -1,4 +1,6 @@
-import { CycleEvaluationService } from "@/core/services/cycle-evaluation.service";
+﻿import { CycleEvaluationService } from "@/core/services/cycle-evaluation.service";
+import { InMemoryCycleEvaluationRepository } from "@/infrastructure/repositories/in-memory/in-memory-cycle-evaluation.repository";
+import { InMemoryContractRepository } from "@/infrastructure/repositories/in-memory/in-memory-contract.repository";
 import { Database } from "@/lib/db";
 import { ScoreRecalculationWorker } from "@/infrastructure/jobs/score-recalculation.worker";
 
@@ -25,24 +27,27 @@ export interface CycleTriggerReport {
  * Principios:
  * - Verificacao Diaria (cron): Avalia condicoes para cada cliente ativo do freelancer.
  * - Gatilhos: 10 contratos/projetos concluidos OU 30 dias de ciclo continuo.
- * - Idempotencia: Trava em cycle_identifier unico — nenhum cliente recebe solicitacao duplicada.
+ * - Idempotencia: Trava em cycle_identifier unico - nenhum cliente recebe solicitacao duplicada.
  * - Background-First: Retorna imediatamente para nao onerar a thread da requisicao HTTP.
  * - Recalculo em Cascata: Apos novo ciclo COMPLETED, dispara ScoreRecalculationWorker.
  */
 export class CycleEvaluationTriggerWorker {
-  private static service = new CycleEvaluationService();
+  private static service = new CycleEvaluationService(
+    new InMemoryCycleEvaluationRepository(),
+    new InMemoryContractRepository()
+  );
   private static queue: CycleTriggerJobData[] = [];
   private static isProcessing = false;
 
   /**
    * Varre todos os clientes ativos do freelancer e enfileira jobs para cada um.
    */
-  public static scanAndEnqueueAll(userId: string): number {
+  public static async scanAndEnqueueAll(userId: string): Promise<number> {
     const clients = Database.listClients ? Database.listClients(userId) : [];
     let enqueued = 0;
 
     for (const client of clients) {
-      const triggerType = this.service.checkTriggerCondition(userId, client.id);
+      const triggerType = await this.service.checkTriggerCondition(userId, client.id);
       if (triggerType) {
         this.enqueue({ userId, clientId: client.id });
         enqueued++;
@@ -74,7 +79,7 @@ export class CycleEvaluationTriggerWorker {
     const start = performance.now();
 
     try {
-      const triggerType = this.service.checkTriggerCondition(job.userId, job.clientId);
+      const triggerType = await this.service.checkTriggerCondition(job.userId, job.clientId);
 
       if (!triggerType) {
         return {

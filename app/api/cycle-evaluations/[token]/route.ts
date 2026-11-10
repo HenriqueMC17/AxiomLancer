@@ -1,13 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest } from "next/server";
 import { CycleEvaluationService } from "@/core/services/cycle-evaluation.service";
-import { AppError } from "@/core/errors/app-error";
+import { InMemoryCycleEvaluationRepository } from "@/infrastructure/repositories/in-memory/in-memory-cycle-evaluation.repository";
+import { InMemoryContractRepository } from "@/infrastructure/repositories/in-memory/in-memory-contract.repository";
+import { ApiResponse } from "@/lib/api-response";
 
-const service = new CycleEvaluationService();
+const service = new CycleEvaluationService(
+  new InMemoryCycleEvaluationRepository(),
+  new InMemoryContractRepository()
+);
 
 /**
  * GET /api/cycle-evaluations/[token]
  * Rota PUBLICA: Retorna os dados do ciclo para renderizacao do formulario de feedback.
- * Acessada pelo cliente via link de e-mail — nao requer JWT.
+ * Acessada pelo cliente via link de e-mail - nao requer JWT.
  */
 export async function GET(
   _req: NextRequest,
@@ -16,7 +21,7 @@ export async function GET(
   try {
     const { token } = await params;
     const cycle = await service.getByToken(token);
-    return NextResponse.json({
+    return ApiResponse.ok({
       success: true,
       data: {
         id: cycle.id,
@@ -29,10 +34,7 @@ export async function GET(
       },
     });
   } catch (err: unknown) {
-    if (err instanceof AppError) {
-      return NextResponse.json(err.toEnvelope(), { status: err.statusCode });
-    }
-    return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });
+    return ApiResponse.error(err);
   }
 }
 
@@ -49,11 +51,8 @@ export async function POST(
     const { token } = await params;
     const body = await req.json();
     const result = await service.submitFeedback({ ...body, invitation_token: token });
-    return NextResponse.json({ success: true, data: result }, { status: 200 });
+    return ApiResponse.ok({ success: true, data: result });
   } catch (err: unknown) {
-    if (err instanceof AppError) {
-      return NextResponse.json(err.toEnvelope(), { status: err.statusCode });
-    }
-    return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });
+    return ApiResponse.error(err);
   }
 }

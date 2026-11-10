@@ -1,8 +1,9 @@
 ﻿import { withAuth } from "@/app/api/_lib/withAuth";
 import { ContractService } from "@/core/services/contract.service";
+import { InMemoryContractRepository } from "@/infrastructure/repositories/in-memory/in-memory-contract.repository";
 import { ApiResponse } from "@/lib/api-response";
 
-const service = new ContractService();
+const service = new ContractService(new InMemoryContractRepository());
 
 export const PUT = withAuth<{ id: string }>(async (req, { session, params }) => {
   const id = params?.id || (req.url.split("?")[0].split("/").at(-1) ?? "");

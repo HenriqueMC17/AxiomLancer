@@ -1,1 +1,0 @@
-export { GET, POST } from "@/app/api/cycle-evaluations/[token]/route";

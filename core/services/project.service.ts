@@ -1,35 +1,40 @@
-import { Project } from "@/core/domain/types";
+﻿import { Project } from "@/core/domain/types";
 import {
   CreateProjectInput,
   UpdateProjectInput,
   createProjectSchema,
   updateProjectSchema,
 } from "@/core/domain/schemas";
-import { Database } from "@/lib/db";
+import { IProjectRepository } from "@/core/domain/ports/repositories/project.repository.port";
 import { ValidationError, NotFoundError } from "@/core/errors/app-error";
 
 /**
  * Service de Dominio para Gerenciamento de Projetos e Portfolio do Freelancer.
  *
  * Principios:
+ * - Clean Architecture: Depende exclusivamente da interface IProjectRepository (DIP).
  * - Fail Fast: Valida consistencia temporal (start_date <= end_date) e regras Zod na borda.
  * - Zero Trust: Isolamento estrito por userId.
  * - LGPD Compliance: Mascara o nome da empresa se `is_public_client_name` for falso.
  * - "Em desenvolvimento": Aceita `end_date` nulo de forma deterministica.
  */
 export class ProjectService {
+  constructor(
+    private readonly projectRepo: IProjectRepository
+  ) {}
+
   public async listByUser(userId: string): Promise<Project[]> {
     if (!userId || userId.trim() === "") {
       throw new ValidationError("Identificador de usuario obrigatorio");
     }
-    return Database.listProjects(userId);
+    return this.projectRepo.listByUser(userId);
   }
 
   public async getById(id: string, userId: string): Promise<Project> {
     if (!id || !userId) {
       throw new ValidationError("ID do projeto e do usuario sao obrigatorios");
     }
-    const project = Database.findProject(id, userId);
+    const project = await this.projectRepo.findById(id, userId);
     if (!project) {
       throw new NotFoundError("Projeto", id);
     }
@@ -61,8 +66,9 @@ export class ProjectService {
       created_at: new Date().toISOString(),
     };
 
-    const created = Database.createProject(newProject);
-    return Database.findProject(created.id, userId) ?? created;
+    const created = await this.projectRepo.create(newProject);
+    const refreshed = await this.projectRepo.findById(created.id, userId);
+    return refreshed ?? created;
   }
 
   public async update(id: string, userId: string, input: UpdateProjectInput): Promise<Project> {
@@ -75,7 +81,7 @@ export class ProjectService {
       throw new ValidationError("Dados de atualizacao do projeto invalidos", parsed.error.flatten());
     }
 
-    const current = Database.findProject(id, userId);
+    const current = await this.projectRepo.findById(id, userId);
     if (!current) {
       throw new NotFoundError("Projeto", id);
     }
@@ -90,12 +96,13 @@ export class ProjectService {
       updatePayload.end_date = parsed.data.end_date;
     }
 
-    const updated = Database.updateProject(id, userId, updatePayload);
+    const updated = await this.projectRepo.update(id, userId, updatePayload);
     if (!updated) {
       throw new NotFoundError("Projeto", id);
     }
 
-    return Database.findProject(id, userId) ?? updated;
+    const refreshed = await this.projectRepo.findById(id, userId);
+    return refreshed ?? updated;
   }
 
   public async delete(id: string, userId: string): Promise<boolean> {
@@ -103,7 +110,12 @@ export class ProjectService {
       throw new ValidationError("ID do projeto e do usuario sao obrigatorios");
     }
 
-    const deleted = Database.deleteProject(id, userId);
+    const existing = await this.projectRepo.findById(id, userId);
+    if (!existing) {
+      throw new NotFoundError("Projeto", id);
+    }
+
+    const deleted = await this.projectRepo.delete(id, userId);
     if (!deleted) {
       throw new NotFoundError("Projeto", id);
     }

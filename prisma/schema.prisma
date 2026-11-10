@@ -1,4 +1,4 @@
-datasource db {
+﻿datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -19,6 +19,54 @@ enum ChannelType {
   WHATSAPP
 }
 
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELED
+}
+
+enum CycleTriggerType {
+  MILESTONE_10_PROJECTS
+  MONTHLY_30_DAYS
+  MANUAL
+}
+
+enum CycleEvaluationStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+}
+
+enum ExpenseCategory {
+  INFRA
+  SAAS
+  CONTABILIDADE
+  EQUIPAMENTO
+  IMPOSTOS
+  OUTROS
+}
+
+enum ExpenseStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  CANCELED
+  PENDING_SIGNATURE
+}
+
+enum ExecutionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
   id               String            @id @default(uuid()) @db.Uuid
   email            String            @unique
@@ -35,8 +83,135 @@ model User {
   expenses         ProfessionalExpenses[]
   projects         Project[]
   contracts        Contract[]
+  clients          Client[]
+  invoices         Invoice[]
+  billingRules     BillingRule[]
 
   @@map("users")
+}
+
+model Client {
+  id                        String    @id @default(uuid()) @db.Uuid
+  user_id                   String    @db.Uuid
+  legal_name                String    @db.VarChar(255)
+  email                     String    @db.VarChar(255)
+  tone_of_voice             String?   @db.VarChar(100)
+  billing_paused            Boolean   @default(false)
+  payment_reliability_score Decimal   @default(75.00) @db.Decimal(5, 2)
+  avg_payment_delay_days    Decimal   @default(0.00) @db.Decimal(5, 2)
+  created_at                DateTime  @default(now()) @db.Timestamptz
+  updated_at                DateTime? @updated_at @db.Timestamptz
+  deleted_at                DateTime? @db.Timestamptz
+
+  user                      User      @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  invoices                  Invoice[]
+
+  @@index([user_id], map: "idx_client_user")
+  @@map("client")
+}
+
+model Invoice {
+  id                    String                @id @default(uuid()) @db.Uuid
+  user_id               String                @db.Uuid
+  client_id             String                @db.Uuid
+  invoice_number        String                @db.VarChar(100)
+  status                InvoiceStatus
+  due_date              DateTime              @db.Timestamptz
+  gross_value           Decimal               @db.Decimal(12, 2)
+  tax_rate              Decimal               @default(0.00) @db.Decimal(5, 2)
+  net_value             Decimal               @db.Decimal(12, 2)
+  tax_provisioned       Decimal               @default(0.00) @db.Decimal(12, 2)
+  billing_paused        Boolean               @default(false)
+  pix_key               String?               @db.VarChar(255)
+  pix_qr_code           String?               @db.Text
+  recovered_by_engine   Boolean               @default(false)
+  created_at            DateTime              @default(now()) @db.Timestamptz
+  updated_at            DateTime?             @updated_at @db.Timestamptz
+  deleted_at            DateTime?             @db.Timestamptz
+
+  user                  User                  @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  client                Client                @relation(fields: [client_id], references: [id], onDelete: Restrict)
+  takeRate              RecoveryTakeRate?
+  journalEntries        DeduplicationJournal[]
+  executions            BillingExecution[]
+
+  @@unique([user_id, invoice_number], map: "uq_invoice_user_number")
+  @@index([user_id], map: "idx_invoice_user")
+  @@index([client_id], map: "idx_invoice_client")
+  @@index([status], map: "idx_invoice_status")
+  @@map("invoice")
+}
+
+model BillingRule {
+  id            String              @id @default(uuid()) @db.Uuid
+  user_id       String              @db.Uuid
+  name          String              @db.VarChar(255)
+  trigger_type  String              @db.VarChar(100)
+  offset_days   Int
+  channel       ChannelType
+  tone_of_voice ToneOfVoice?
+  active        Boolean             @default(true)
+  created_at    DateTime            @default(now()) @db.Timestamptz
+  updated_at    DateTime?           @updated_at @db.Timestamptz
+  deleted_at    DateTime?           @db.Timestamptz
+
+  user          User                @relation(fields: [user_id], references: [id], onDelete: Restrict)
+  executions    BillingExecution[]
+  journal       DeduplicationJournal[]
+
+  @@index([user_id], map: "idx_billing_rule_user")
+  @@map("billing_rule")
+}
+
+model BillingExecution {
+  id            String          @id @default(uuid()) @db.Uuid
+  invoice_id    String          @db.Uuid
+  rule_id       String          @db.Uuid
+  channel       ChannelType
+  status        ExecutionStatus
+  attempted_at  DateTime        @default(now()) @db.Timestamptz
+  sent_at       DateTime?       @db.Timestamptz
+  error_message String?         @db.Text
+  created_at    DateTime        @default(now()) @db.Timestamptz
+  updated_at    DateTime?       @updated_at @db.Timestamptz
+
+  invoice       Invoice         @relation(fields: [invoice_id], references: [id], onDelete: Restrict)
+  rule          BillingRule     @relation(fields: [rule_id], references: [id], onDelete: Restrict)
+  journalEntry  DeduplicationJournal?
+
+  @@index([invoice_id], map: "idx_billing_execution_invoice")
+  @@map("billing_execution")
+}
+
+model DeduplicationJournal {
+  event_id      String            @id @db.VarChar(150)
+  invoice_id    String            @db.Uuid
+  trigger_day   DateTime          @db.Date
+  rule_id       String            @db.Uuid
+  execution_id  String?           @unique @db.Uuid
+  processed_at  DateTime          @default(now()) @db.Timestamptz
+
+  invoice       Invoice           @relation(fields: [invoice_id], references: [id], onDelete: Restrict)
+  rule          BillingRule       @relation(fields: [rule_id], references: [id], onDelete: Restrict)
+  execution     BillingExecution? @relation(fields: [execution_id], references: [id], onDelete: Restrict)
+
+  @@unique([invoice_id, trigger_day, rule_id], map: "uq_dedup_invoice_day_rule")
+  @@map("deduplication_journal")
+}
+
+model RecoveryTakeRate {
+  id                String    @id @default(uuid()) @db.Uuid
+  invoice_id        String    @unique @db.Uuid
+  recovered_amount  Decimal   @db.Decimal(12, 2)
+  take_rate_percent Decimal   @db.Decimal(5, 2)
+  retained_fee      Decimal   @db.Decimal(12, 2)
+  processed_at      DateTime  @default(now()) @db.Timestamptz
+  created_at        DateTime  @default(now()) @db.Timestamptz
+  updated_at        DateTime? @updated_at @db.Timestamptz
+
+  invoice           Invoice   @relation(fields: [invoice_id], references: [id], onDelete: Restrict)
+
+  @@map("recovery_take_rate")
 }
 
 model MessageTemplate {
@@ -51,7 +226,6 @@ model MessageTemplate {
   deleted_at    DateTime?    @db.Timestamptz
 
   user          User         @relation(fields: [user_id], references: [id], onDelete: Restrict)
-  project       Project      @relation(fields: [project_id], references: [id], onDelete: Restrict)
 
   @@index([user_id], map: "idx_message_template_user")
   @@map("message_template")
@@ -71,18 +245,6 @@ model ProjectFeedback {
 
   @@index([user_id], map: "idx_project_feedback_user")
   @@map("project_feedback")
-}
-
-enum CycleTriggerType {
-  MILESTONE_10_PROJECTS
-  MONTHLY_30_DAYS
-  MANUAL
-}
-
-enum CycleEvaluationStatus {
-  PENDING
-  COMPLETED
-  EXPIRED
 }
 
 model CycleEvaluation {
@@ -111,21 +273,6 @@ model CycleEvaluation {
   @@index([user_id], map: "idx_cycle_evaluation_user")
   @@index([invitation_token], map: "idx_cycle_evaluation_token")
   @@map("cycle_evaluation")
-}
-
-enum ExpenseCategory {
-  INFRA
-  SAAS
-  CONTABILIDADE
-  EQUIPAMENTO
-  IMPOSTOS
-  OUTROS
-}
-
-enum ExpenseStatus {
-  PENDING
-  PAID
-  CANCELED
 }
 
 model ProfessionalExpenses {
@@ -167,13 +314,6 @@ model Project {
   @@index([user_id], map: "idx_project_user")
   @@index([client_id], map: "idx_project_client")
   @@map("project")
-}
-
-enum ContractStatus {
-  ACTIVE
-  COMPLETED
-  CANCELED
-  PENDING_SIGNATURE
 }
 
 model Contract {

@@ -1,1 +1,0 @@
-export { POST } from '@/app/api/contracts/[id]/accept/route';

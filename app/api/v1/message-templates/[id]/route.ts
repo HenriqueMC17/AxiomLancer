@@ -1,1 +1,0 @@
-export { PUT, DELETE } from "@/app/api/message-templates/[id]/route";

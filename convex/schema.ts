@@ -1,4 +1,4 @@
-import { defineSchema, defineTable } from "convex/server";
+﻿import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 /**
@@ -8,7 +8,7 @@ import { v } from "convex/values";
  */
 
 export default defineSchema({
-  // Usuários / Tenants do SaaS
+  // Usuarios / Tenants do SaaS
   users: defineTable({
     email: v.string(),
     name: v.string(),
@@ -17,7 +17,7 @@ export default defineSchema({
     updated_at: v.optional(v.string()),
   }).index("by_email", ["email"]),
 
-  // Perfil corporativo do freelancer/agência
+  // Perfil corporativo do freelancer/agencia
   user_profiles: defineTable({
     user_id: v.string(),
     first_name: v.string(),
@@ -28,7 +28,7 @@ export default defineSchema({
     email: v.string(),
     phone: v.optional(v.string()),
     address_type: v.optional(v.string()),
-    tax_id: v.optional(v.string()), // CPF ou CNPJ
+    tax_id: v.optional(v.string()),
     cep: v.optional(v.string()),
     street: v.optional(v.string()),
     number: v.optional(v.string()),
@@ -59,7 +59,7 @@ export default defineSchema({
     updated_at: v.optional(v.string()),
   }).index("by_user", ["user_id"]),
 
-  // Faturas e faturamentos com Split Tributário
+  // Faturas e faturamentos com Split Tributario
   invoices: defineTable({
     user_id: v.string(),
     client_id: v.string(),
@@ -112,7 +112,7 @@ export default defineSchema({
     created_at: v.optional(v.string()),
   }).index("by_user", ["user_id"]),
 
-  // Regras atômicas da esteira de cobrança
+  // Regras atomicas da esteira de cobranca
   billing_rules: defineTable({
     user_id: v.string(),
     name: v.string(),
@@ -137,7 +137,7 @@ export default defineSchema({
     created_at: v.optional(v.string()),
   }).index("by_user", ["user_id"]),
 
-  // DeduplicationJournal para garantir idempotência estrita
+  // DeduplicationJournal para garantir idempotencia estrita
   deduplication_journal: defineTable({
     event_id: v.string(),
     invoice_id: v.string(),
@@ -149,7 +149,7 @@ export default defineSchema({
     .index("by_event", ["event_id"])
     .index("by_invoice", ["invoice_id"]),
 
-  // Histórico de disparos de cobrança
+  // Historico de disparos de cobranca
   billing_executions: defineTable({
     invoice_id: v.string(),
     rule_id: v.string(),
@@ -163,7 +163,7 @@ export default defineSchema({
     executed_at: v.string(),
   }).index("by_invoice", ["invoice_id"]),
 
-  // Retenção do Success Fee de 5% sobre faturas recuperadas
+  // Retencao do Success Fee de 5% sobre faturas recuperadas
   recovery_take_rates: defineTable({
     invoice_id: v.string(),
     gross_amount: v.float64(),
@@ -206,7 +206,7 @@ export default defineSchema({
     updated_at: v.optional(v.string()),
   }).index("by_user", ["user_id"]),
 
-    // Livro-Razão Contábil (Ledger)
+  // Livro-Razao Contabil (Ledger)
   ledger_transactions: defineTable({
     user_id: v.string(),
     type: v.union(
@@ -219,4 +219,92 @@ export default defineSchema({
     description: v.string(),
     created_at: v.string(),
   }).index("by_user", ["user_id"]),
+
+  // Contratos formais com aceite digital imutavel
+  contracts: defineTable({
+    user_id: v.string(),
+    client_id: v.string(),
+    title: v.string(),
+    description: v.optional(v.string()),
+    contract_value: v.float64(),
+    status: v.union(
+      v.literal("ACTIVE"),
+      v.literal("COMPLETED"),
+      v.literal("CANCELED"),
+      v.literal("PENDING_SIGNATURE")
+    ),
+    start_date: v.string(),
+    end_date: v.optional(v.union(v.string(), v.null())),
+    terms_clause: v.string(),
+    accepted_at: v.optional(v.string()),
+    signer_name: v.optional(v.string()),
+    signer_email: v.optional(v.string()),
+    signer_ip: v.optional(v.string()),
+    signature_hash: v.optional(v.string()),
+    created_at: v.optional(v.string()),
+    updated_at: v.optional(v.string()),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_client", ["client_id"])
+    .index("by_status", ["status"]),
+
+  // Avaliacoes de Ciclo Recorrente (10 projetos / 30 dias)
+  cycle_evaluations: defineTable({
+    user_id: v.string(),
+    client_id: v.string(),
+    cycle_identifier: v.string(),
+    score_communication: v.optional(v.float64()),
+    score_proactivity: v.optional(v.float64()),
+    score_results: v.optional(v.float64()),
+    score_understanding: v.optional(v.float64()),
+    score_demand_delivery: v.optional(v.float64()),
+    general_score: v.float64(),
+    comments: v.optional(v.string()),
+    trigger_type: v.union(
+      v.literal("MILESTONE_10_PROJECTS"),
+      v.literal("MONTHLY_30_DAYS"),
+      v.literal("MANUAL")
+    ),
+    status: v.union(
+      v.literal("PENDING"),
+      v.literal("COMPLETED"),
+      v.literal("EXPIRED")
+    ),
+    invitation_token: v.optional(v.string()),
+    invitation_sent_at: v.optional(v.string()),
+    completed_at: v.optional(v.string()),
+    client_name: v.optional(v.string()),
+    created_at: v.optional(v.string()),
+    updated_at: v.optional(v.string()),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_token", ["invitation_token"])
+    .index("by_identifier", ["cycle_identifier"]),
+
+  // Projetos do portfolio do freelancer
+  projects: defineTable({
+    user_id: v.string(),
+    client_id: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    start_date: v.string(),
+    end_date: v.optional(v.union(v.string(), v.null())),
+    is_public_client_name: v.boolean(),
+    created_at: v.optional(v.string()),
+    updated_at: v.optional(v.string()),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_client", ["client_id"]),
+
+  // Avaliacoes e feedbacks de projetos entregues
+  project_feedbacks: defineTable({
+    user_id: v.string(),
+    project_id: v.string(),
+    score: v.float64(),
+    comments: v.optional(v.string()),
+    created_at: v.optional(v.string()),
+    updated_at: v.optional(v.string()),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_project", ["project_id"]),
 });

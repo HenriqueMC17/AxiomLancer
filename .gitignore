@@ -110,3 +110,6 @@ $RECYCLE.BIN/
 # Nota: AxiomLancer.sql permanece rastreado como schema mestre da arquitetura
 .vercel
 .env*
+
+! .env.example
+!.env.example

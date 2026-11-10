@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -31,7 +31,7 @@ export function OpexSummaryCards() {
   useEffect(() => {
     async function loadSummary() {
       try {
-        const res = await fetch("/api/v1/dashboard/summary", { credentials: "include" });
+        const res = await fetch("/api/dashboard/summary", { credentials: "include" });
         if (res.ok) {
           const json = await res.json();
           setData(json.summary);

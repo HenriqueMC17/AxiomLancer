@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
+﻿import { describe, it, expect, beforeEach } from "vitest";
 import { createProjectSchema } from "@/core/domain/schemas";
-import { ProjectService } from "@/core/services/project.service";
+import { ProjectService } from '@/core/services/project.service';
+import { InMemoryProjectRepository } from '@/infrastructure/repositories/in-memory/in-memory-project.repository';
 import { Database } from "@/lib/db";
 import { ValidationError, NotFoundError } from "@/core/errors/app-error";
 
@@ -10,7 +11,7 @@ describe("Project Domain, Validation & LGPD Compliance", () => {
   const foreignUserId = "usr_proj_test_02";
 
   beforeEach(() => {
-    service = new ProjectService();
+    service = new ProjectService(new InMemoryProjectRepository());
   });
 
   describe("Zod Contract & Data Validation (Fail Fast)", () => {

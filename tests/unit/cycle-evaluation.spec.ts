@@ -1,4 +1,4 @@
-/**
+﻿/**
  * tests/unit/cycle-evaluation.spec.ts
  *
  * Cobertura 100% do dominio de Avaliacao de Ciclo Recorrente:
@@ -12,12 +12,14 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { CycleEvaluationService } from "@/core/services/cycle-evaluation.service";
+import { CycleEvaluationService } from '@/core/services/cycle-evaluation.service';
+import { InMemoryCycleEvaluationRepository } from '@/infrastructure/repositories/in-memory/in-memory-cycle-evaluation.repository';
+import { InMemoryContractRepository } from '@/infrastructure/repositories/in-memory/in-memory-contract.repository';
 import { Database } from "@/lib/db";
 import { CycleEvaluationTriggerWorker } from "@/infrastructure/jobs/cycle-evaluation-trigger.worker";
 import { ScoreRecalculationWorker } from "@/infrastructure/jobs/score-recalculation.worker";
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Helpers Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 function makeValidFeedback(token: string) {
   return {
     invitation_token: token,
@@ -30,15 +32,15 @@ function makeValidFeedback(token: string) {
   };
 }
 
-// â”€â”€â”€ Suite â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Suite Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 describe("CycleEvaluationService", () => {
   let service: CycleEvaluationService;
 
   beforeEach(() => {
-    service = new CycleEvaluationService();
+    service = new CycleEvaluationService(new InMemoryCycleEvaluationRepository(), new InMemoryContractRepository());
   });
 
-  // â”€â”€ generateCycleIdentifier â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ generateCycleIdentifier Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("generateCycleIdentifier", () => {
     it("should produce deterministic key for MILESTONE_10_PROJECTS", () => {
       const date = new Date("2026-11-01T12:00:00Z");
@@ -84,7 +86,7 @@ describe("CycleEvaluationService", () => {
     });
   });
 
-  // â”€â”€ generateInvitationToken â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ generateInvitationToken Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("generateInvitationToken", () => {
     it("should start with prefix tkn_", () => {
       const token = CycleEvaluationService.generateInvitationToken("cycle_m10_cli_acme_2026-11");
@@ -104,60 +106,60 @@ describe("CycleEvaluationService", () => {
     });
   });
 
-  // â”€â”€ checkTriggerCondition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ checkTriggerCondition Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("checkTriggerCondition", () => {
-    it("should return MILESTONE_10_PROJECTS when >= 10 completed contracts exist", () => {
+    it("should return MILESTONE_10_PROJECTS when >= 10 completed contracts exist", async () => {
       vi.spyOn(Database, "countCompletedContractsByClient").mockReturnValue(10);
       vi.spyOn(Database, "getClientFirstContractDate").mockReturnValue(null);
       vi.spyOn(Database, "getLastCompletedCycleDate").mockReturnValue(null);
       vi.spyOn(Database, "findCycleEvaluationByIdentifier").mockReturnValue(null);
 
-      const result = service.checkTriggerCondition("usr_7keys_001", "cli_acme");
+      const result = await service.checkTriggerCondition("usr_7keys_001", "cli_acme");
       expect(result).toBe("MILESTONE_10_PROJECTS");
 
       vi.restoreAllMocks();
     });
 
-    it("should return MONTHLY_30_DAYS when 30+ days elapsed since first contract", () => {
+    it("should return MONTHLY_30_DAYS when 30+ days elapsed since first contract", async () => {
       const firstDate = new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString();
       vi.spyOn(Database, "countCompletedContractsByClient").mockReturnValue(2);
       vi.spyOn(Database, "getClientFirstContractDate").mockReturnValue(firstDate);
       vi.spyOn(Database, "getLastCompletedCycleDate").mockReturnValue(null);
       vi.spyOn(Database, "findCycleEvaluationByIdentifier").mockReturnValue(null);
 
-      const result = service.checkTriggerCondition("usr_7keys_001", "cli_acme");
+      const result = await service.checkTriggerCondition("usr_7keys_001", "cli_acme");
       expect(result).toBe("MONTHLY_30_DAYS");
 
       vi.restoreAllMocks();
     });
 
-    it("should return MONTHLY_30_DAYS based on lastCycleDate when available", () => {
+    it("should return MONTHLY_30_DAYS based on lastCycleDate when available", async () => {
       const lastCycle = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
       vi.spyOn(Database, "countCompletedContractsByClient").mockReturnValue(1);
       vi.spyOn(Database, "getClientFirstContractDate").mockReturnValue(null);
       vi.spyOn(Database, "getLastCompletedCycleDate").mockReturnValue(lastCycle);
       vi.spyOn(Database, "findCycleEvaluationByIdentifier").mockReturnValue(null);
 
-      const result = service.checkTriggerCondition("usr_7keys_001", "cli_acme");
+      const result = await service.checkTriggerCondition("usr_7keys_001", "cli_acme");
       expect(result).toBe("MONTHLY_30_DAYS");
 
       vi.restoreAllMocks();
     });
 
-    it("should return null when neither condition is met", () => {
+    it("should return null when neither condition is met", async () => {
       const recentDate = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
       vi.spyOn(Database, "countCompletedContractsByClient").mockReturnValue(3);
       vi.spyOn(Database, "getClientFirstContractDate").mockReturnValue(recentDate);
       vi.spyOn(Database, "getLastCompletedCycleDate").mockReturnValue(null);
       vi.spyOn(Database, "findCycleEvaluationByIdentifier").mockReturnValue(null);
 
-      const result = service.checkTriggerCondition("usr_7keys_001", "cli_acme");
+      const result = await service.checkTriggerCondition("usr_7keys_001", "cli_acme");
       expect(result).toBeNull();
 
       vi.restoreAllMocks();
     });
 
-    it("should return null (idempotency) when cycle identifier already exists in DB", () => {
+    it("should return null (idempotency) when cycle identifier already exists in DB", async () => {
       vi.spyOn(Database, "countCompletedContractsByClient").mockReturnValue(15);
       vi.spyOn(Database, "getClientFirstContractDate").mockReturnValue(null);
       vi.spyOn(Database, "getLastCompletedCycleDate").mockReturnValue(null);
@@ -170,14 +172,14 @@ describe("CycleEvaluationService", () => {
         created_at: new Date().toISOString(),
       });
 
-      const result = service.checkTriggerCondition("usr_7keys_001", "cli_acme");
+      const result = await service.checkTriggerCondition("usr_7keys_001", "cli_acme");
       expect(result).toBeNull();
 
       vi.restoreAllMocks();
     });
   });
 
-  // â”€â”€ triggerCycleEvaluation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ triggerCycleEvaluation Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("triggerCycleEvaluation", () => {
     it("should create a PENDING cycle with a valid invitation token", async () => {
       vi.spyOn(Database, "findCycleEvaluationByIdentifier").mockReturnValue(null);
@@ -245,7 +247,7 @@ describe("CycleEvaluationService", () => {
     });
   });
 
-  // â”€â”€ submitFeedback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ submitFeedback Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("submitFeedback", () => {
     const PENDING_CYCLE = {
       id: "cyc_pending_001",
@@ -385,7 +387,7 @@ describe("CycleEvaluationService", () => {
     });
   });
 
-  // â”€â”€ Zod Validation (Fail Fast) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ Zod Validation (Fail Fast) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("Zod input validation (Fail Fast)", () => {
     it("should reject score_communication below 1.0", async () => {
       vi.spyOn(Database, "findCycleEvaluationByToken").mockReturnValue(null);
@@ -427,7 +429,7 @@ describe("CycleEvaluationService", () => {
     });
   });
 
-  // â”€â”€ getByToken (public form route) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬ getByToken (public form route) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   describe("getByToken", () => {
     it("should return cycle when token is valid and found", async () => {
       vi.spyOn(Database, "findCycleEvaluationByToken").mockReturnValue({
@@ -458,7 +460,7 @@ describe("CycleEvaluationService", () => {
   });
 });
 
-// â”€â”€â”€ CycleEvaluationTriggerWorker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CycleEvaluationTriggerWorker Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 describe("CycleEvaluationTriggerWorker", () => {
   it("should call ScoreRecalculationWorker.enqueue when onCycleCompleted is called", () => {
     const enqueueSpy = vi.spyOn(ScoreRecalculationWorker, "enqueue").mockImplementation(() => {});
@@ -483,7 +485,7 @@ describe("CycleEvaluationTriggerWorker", () => {
   });
 
   it("should return 0 pending jobs on fresh state (queue drains via setTimeout)", () => {
-    // The queue drains asynchronously via setTimeout(0) â€” in sync context it remains
+    // The queue drains asynchronously via setTimeout(0) Ã¢â‚¬â€ in sync context it remains
     const count = CycleEvaluationTriggerWorker.getPendingCount();
     expect(typeof count).toBe("number");
     expect(count).toBeGreaterThanOrEqual(0);

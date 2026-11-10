@@ -1,7 +1,16 @@
-/** @type {import("next").NextConfig} */
+﻿/** @type {import("next").NextConfig} */
 const nextConfig = {
   images: {
     unoptimized: true,
+  },
+  // Canonizacao de rotas API: permite consumir tanto /api/v1 quanto /api com zero duplicacao
+  async rewrites() {
+    return [
+      {
+        source: "/api/v1/:path*",
+        destination: "/api/:path*",
+      },
+    ];
   },
   // G-13 fix (P2-4): Security headers enterprise-grade
   async headers() {

@@ -1,9 +1,13 @@
-import { NextResponse } from "next/server";
-import { withAuth } from "@/app/api/_lib/withAuth";
+﻿import { withAuth } from "@/app/api/_lib/withAuth";
 import { CycleEvaluationService } from "@/core/services/cycle-evaluation.service";
-import { AppError } from "@/core/errors/app-error";
+import { InMemoryCycleEvaluationRepository } from "@/infrastructure/repositories/in-memory/in-memory-cycle-evaluation.repository";
+import { InMemoryContractRepository } from "@/infrastructure/repositories/in-memory/in-memory-contract.repository";
+import { ApiResponse } from "@/lib/api-response";
 
-const service = new CycleEvaluationService();
+const service = new CycleEvaluationService(
+  new InMemoryCycleEvaluationRepository(),
+  new InMemoryContractRepository()
+);
 
 /**
  * POST /api/cycle-evaluations/trigger
@@ -14,11 +18,8 @@ export const POST = withAuth(async (req, { session }) => {
   try {
     const body = await req.json();
     const cycle = await service.triggerCycleEvaluation(session.userId, body);
-    return NextResponse.json({ success: true, data: cycle }, { status: 201 });
+    return ApiResponse.ok({ success: true, data: cycle }, 201);
   } catch (err: unknown) {
-    if (err instanceof AppError) {
-      return NextResponse.json(err.toEnvelope(), { status: err.statusCode });
-    }
-    return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });
+    return ApiResponse.error(err);
   }
 });

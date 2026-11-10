@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { withAuth } from "@/app/api/_lib/withAuth";
+﻿import { withAuth } from "@/app/api/_lib/withAuth";
 import { Database } from "@/lib/db";
 import { DashboardSummaryService } from "@/core/services/dashboard-summary.service";
+import { ApiResponse } from "@/lib/api-response";
 
 /**
- * GET /api/dashboard/summary e /api/v1/dashboard/summary
+ * GET /api/dashboard/summary
  * Consolida Entradas (Invoices) e Saidas Operacionais (OPEX), calculando Margem de Lucro Real com precisao decimal.js.
  * Zero Trust: Isolamento estrito por session.userId.
  */
@@ -16,11 +16,11 @@ export const GET = withAuth(async (_req, { session }) => {
 
     const summary = DashboardSummaryService.calculateSummary(userInvoices, userExpenses);
 
-    return NextResponse.json({
+    return ApiResponse.ok({
       ok: true,
       summary,
     });
-  } catch {
-    return NextResponse.json({ error: "Erro interno no servidor ao processar sumarizacao" }, { status: 500 });
+  } catch (err) {
+    return ApiResponse.error(err);
   }
 });

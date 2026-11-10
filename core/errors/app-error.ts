@@ -79,6 +79,17 @@ export class AuthenticationError extends AppError {
   }
 }
 
+export class ForbiddenError extends AppError {
+  constructor(message: string = "Acesso nao autorizado ao recurso solicitado.", context: ErrorContext = {}) {
+    super("FORBIDDEN_ERROR", message, 403, {
+      expected: "Permissao de proprietario do recurso para o usuario autenticado.",
+      suggestion: "Verifique se voce possui direitos de acesso sobre o identificador fornecido.",
+      ...context,
+    });
+    this.name = "ForbiddenError";
+  }
+}
+
 export class BusinessRuleViolationError extends AppError {
   constructor(code: string, message: string, context: ErrorContext = {}) {
     super(code, message, 422, context);

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
@@ -93,7 +93,7 @@ export function ContractManager() {
     setIsLoading(true);
     try {
       const [cntRes, cliRes] = await Promise.all([
-        fetch("/api/v1/contracts", { credentials: "include" }),
+        fetch("/api/contracts", { credentials: "include" }),
         fetch("/api/clients", { credentials: "include" }),
       ]);
 
@@ -187,8 +187,8 @@ export function ContractManager() {
     setFormLoading(true);
     try {
       const url = editingContract
-        ? `/api/v1/contracts/${editingContract.id}`
-        : "/api/v1/contracts";
+        ? `/api/contracts/${editingContract.id}`
+        : "/api/contracts";
       const method = editingContract ? "PUT" : "POST";
 
       const payload = {
@@ -229,7 +229,7 @@ export function ContractManager() {
 
     setAcceptLoading(true);
     try {
-      const res = await fetch(`/api/v1/contracts/${selectedForAccept.id}/accept`, {
+      const res = await fetch(`/api/contracts/${selectedForAccept.id}/accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -259,7 +259,7 @@ export function ContractManager() {
     if (!deleteTarget) return;
     setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/v1/contracts/${deleteTarget.id}`, {
+      const res = await fetch(`/api/contracts/${deleteTarget.id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -284,10 +284,10 @@ export function ContractManager() {
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
             <FileText className="h-5 w-5 text-emerald-400" />
-            Gestão de Contratos &amp; Aceite Digital
+            GestÃ£o de Contratos &amp; Aceite Digital
           </h2>
           <p className="text-sm text-zinc-400 mt-0.5">
-            Formalize escopos, cláusulas e valores com validade jurídica e carimbo imutável
+            Formalize escopos, clÃ¡usulas e valores com validade jurÃ­dica e carimbo imutÃ¡vel
           </p>
         </div>
         <Button
@@ -318,7 +318,7 @@ export function ContractManager() {
           <FileText className="h-10 w-10 text-zinc-600" />
           <p className="text-zinc-300 font-medium">Nenhum contrato formalizado ainda</p>
           <p className="text-zinc-500 text-xs max-w-sm">
-            Emita seu primeiro contrato formal com estipulação de escopo e aceite digital com validade jurídica.
+            Emita seu primeiro contrato formal com estipulaÃ§Ã£o de escopo e aceite digital com validade jurÃ­dica.
           </p>
           <Button onClick={openCreate} variant="outline" className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10">
             Emitir Primeiro Contrato
@@ -415,7 +415,7 @@ export function ContractManager() {
                   <div className="flex items-center justify-between text-[11px] text-zinc-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      Vigência: {cnt.start_date} {cnt.end_date ? `até ${cnt.end_date}` : "(Tempo indeterminado)"}
+                      VigÃªncia: {cnt.start_date} {cnt.end_date ? `atÃ© ${cnt.end_date}` : "(Tempo indeterminado)"}
                     </span>
                   </div>
 
@@ -470,7 +470,7 @@ export function ContractManager() {
           <form onSubmit={handleFormSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="cnt_title" className="text-xs text-zinc-300">
-                Título do Contrato / Escopo <span className="text-rose-400">*</span>
+                TÃ­tulo do Contrato / Escopo <span className="text-rose-400">*</span>
               </Label>
               <Input
                 id="cnt_title"
@@ -522,7 +522,7 @@ export function ContractManager() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="cnt_start" className="text-xs text-zinc-300">
-                  Início da Vigência <span className="text-rose-400">*</span>
+                  InÃ­cio da VigÃªncia <span className="text-rose-400">*</span>
                 </Label>
                 <Input
                   id="cnt_start"
@@ -536,7 +536,7 @@ export function ContractManager() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="cnt_end" className="text-xs text-zinc-300">
-                  Término (Opcional)
+                  TÃ©rmino (Opcional)
                 </Label>
                 <Input
                   id="cnt_end"
@@ -551,7 +551,7 @@ export function ContractManager() {
 
             <div className="space-y-1.5">
               <Label htmlFor="cnt_desc" className="text-xs text-zinc-300">
-                Resumo do Escopo / Descrição
+                Resumo do Escopo / DescriÃ§Ã£o
               </Label>
               <Input
                 id="cnt_desc"
@@ -564,7 +564,7 @@ export function ContractManager() {
 
             <div className="space-y-1.5">
               <Label htmlFor="cnt_terms" className="text-xs text-zinc-300">
-                Cláusulas &amp; Termos Contratuais <span className="text-rose-400">*</span>
+                ClÃ¡usulas &amp; Termos Contratuais <span className="text-rose-400">*</span>
               </Label>
               <Textarea
                 id="cnt_terms"
@@ -586,7 +586,7 @@ export function ContractManager() {
                 disabled={formLoading}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
               >
-                {formLoading ? "Salvando..." : editingContract ? "Salvar Alterações" : "Emitir Contrato"}
+                {formLoading ? "Salvando..." : editingContract ? "Salvar AlteraÃ§Ãµes" : "Emitir Contrato"}
               </Button>
             </DialogFooter>
           </form>
@@ -634,7 +634,7 @@ export function ContractManager() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="sign_email" className="text-xs text-zinc-300">
-                  E-mail Corporativo do Signatário <span className="text-rose-400">*</span>
+                  E-mail Corporativo do SignatÃ¡rio <span className="text-rose-400">*</span>
                 </Label>
                 <Input
                   id="sign_email"
@@ -655,7 +655,7 @@ export function ContractManager() {
                   className="mt-0.5 border-zinc-500 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
                 />
                 <Label htmlFor="chk_terms" className="text-xs text-zinc-300 cursor-pointer leading-tight">
-                  Declaro que li, concordo integralmente com os termos e valores estipulados e registro meu aceite digital com validade jurídica.
+                  Declaro que li, concordo integralmente com os termos e valores estipulados e registro meu aceite digital com validade jurÃ­dica.
                 </Label>
               </div>
 

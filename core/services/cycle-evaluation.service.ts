@@ -1,4 +1,4 @@
-import Decimal from "decimal.js";
+﻿import Decimal from "decimal.js";
 import { CycleEvaluation } from "@/core/domain/types";
 import {
   SubmitCycleFeedbackInput,
@@ -6,13 +6,15 @@ import {
   submitCycleFeedbackSchema,
   triggerCycleEvaluationSchema,
 } from "@/core/domain/schemas";
-import { Database } from "@/lib/db";
+import { ICycleEvaluationRepository } from "@/core/domain/ports/repositories/cycle-evaluation.repository.port";
+import { IContractRepository } from "@/core/domain/ports/repositories/contract.repository.port";
 import { ValidationError, NotFoundError, BusinessRuleViolationError } from "@/core/errors/app-error";
 
 /**
  * Service de Dominio para o Sistema de Avaliacao Recorrente de Ciclo.
  *
  * Principios:
+ * - Clean Architecture: Depende exclusivamente dos Ports ICycleEvaluationRepository e IContractRepository (DIP).
  * - Idempotencia Estrita: Chave unica de ciclo (cycle_identifier) com constraint UNIQUE.
  * - Aritmetica Rigorosa: general_score calculado via decimal.js (ROUND_HALF_UP, Decimal 12,2).
  * - Fail Fast: Validacao Zod em todos os inputs antes de tocar na persistencia.
@@ -21,6 +23,11 @@ import { ValidationError, NotFoundError, BusinessRuleViolationError } from "@/co
 export class CycleEvaluationService {
   private static readonly MILESTONE_THRESHOLD = 10;
   private static readonly MONTHLY_DAYS = 30;
+
+  constructor(
+    private readonly cycleRepo: ICycleEvaluationRepository,
+    private readonly contractRepo: IContractRepository
+  ) {}
 
   /**
    * Gera a chave unica de idempotencia do ciclo.
@@ -55,18 +62,19 @@ export class CycleEvaluationService {
    * Verifica se o gatilho de avaliacao de ciclo deve ser disparado para o cliente informado.
    * Retorna o motivo do disparo ou null se nao ha condicao atingida.
    */
-  checkTriggerCondition(
+  async checkTriggerCondition(
     userId: string,
     clientId: string
-  ): TriggerCycleEvaluationInput["trigger_type"] | null {
-    const completedCount = Database.countCompletedContractsByClient(userId, clientId);
-    const lastCycleDate = Database.getLastCompletedCycleDate(userId, clientId);
-    const firstContractDate = Database.getClientFirstContractDate(userId, clientId);
+  ): Promise<TriggerCycleEvaluationInput["trigger_type"] | null> {
+    const completedCount = await this.contractRepo.countCompletedByClient(userId, clientId);
+    const lastCycleDate = await this.cycleRepo.getLastCompletedCycleDate(userId, clientId);
+    const firstContractDate = await this.contractRepo.getFirstContractDate(userId, clientId);
 
     // Gatilho 1: Marco de 10 contratos/projetos concluidos
     if (completedCount >= CycleEvaluationService.MILESTONE_THRESHOLD) {
       const cycleId = CycleEvaluationService.generateCycleIdentifier("MILESTONE_10_PROJECTS", clientId);
-      if (!Database.findCycleEvaluationByIdentifier(cycleId)) {
+      const existing = await this.cycleRepo.findByIdentifier(cycleId);
+      if (!existing) {
         return "MILESTONE_10_PROJECTS";
       }
     }
@@ -79,7 +87,8 @@ export class CycleEvaluationService {
       );
       if (daysSince >= CycleEvaluationService.MONTHLY_DAYS) {
         const cycleId = CycleEvaluationService.generateCycleIdentifier("MONTHLY_30_DAYS", clientId);
-        if (!Database.findCycleEvaluationByIdentifier(cycleId)) {
+        const existing = await this.cycleRepo.findByIdentifier(cycleId);
+        if (!existing) {
           return "MONTHLY_30_DAYS";
         }
       }
@@ -109,7 +118,7 @@ export class CycleEvaluationService {
     );
 
     // Idempotencia: rejeita disparo se o ciclo ja existe
-    const existing = Database.findCycleEvaluationByIdentifier(cycleIdentifier);
+    const existing = await this.cycleRepo.findByIdentifier(cycleIdentifier);
     if (existing) {
       throw new BusinessRuleViolationError(
         "CYCLE_ALREADY_TRIGGERED",
@@ -133,14 +142,15 @@ export class CycleEvaluationService {
       created_at: now,
     };
 
-    Database.addCycleEvaluation(newCycle);
+    await this.cycleRepo.create(newCycle);
 
     // Simulacao do disparo de e-mail transacional (SendGrid / Resend)
     console.info(
       `[CycleWorker] Convite de avaliacao enviado | Ciclo: ${cycleIdentifier} | Token: ${invitationToken}`
     );
 
-    return Database.listAllCycleEvaluations(userId).find((c) => c.cycle_identifier === cycleIdentifier) ?? newCycle;
+    const all = await this.cycleRepo.listByUser(userId);
+    return all.find((c) => c.cycle_identifier === cycleIdentifier) ?? newCycle;
   }
 
   /**
@@ -153,7 +163,7 @@ export class CycleEvaluationService {
       throw new ValidationError("Dados de avaliacao invalidos", parsed.error.flatten());
     }
 
-    const cycle = Database.findCycleEvaluationByToken(parsed.data.invitation_token);
+    const cycle = await this.cycleRepo.findByToken(parsed.data.invitation_token);
     if (!cycle) {
       throw new NotFoundError("Avaliacao de Ciclo", parsed.data.invitation_token);
     }
@@ -183,7 +193,7 @@ export class CycleEvaluationService {
       .toDecimalPlaces(2, Decimal.ROUND_HALF_UP)
       .toNumber();
 
-    const updated = Database.updateCycleEvaluation(cycle.id, {
+    const updated = await this.cycleRepo.update(cycle.id, {
       score_communication: new Decimal(d.score_communication).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
       score_proactivity: new Decimal(d.score_proactivity).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
       score_results: new Decimal(d.score_results).toDecimalPlaces(2, Decimal.ROUND_HALF_UP).toNumber(),
@@ -204,7 +214,7 @@ export class CycleEvaluationService {
    */
   async listByUser(userId: string): Promise<CycleEvaluation[]> {
     if (!userId) throw new ValidationError("Identificador de usuario obrigatorio");
-    return Database.listAllCycleEvaluations(userId);
+    return this.cycleRepo.listByUser(userId);
   }
 
   /**
@@ -214,7 +224,7 @@ export class CycleEvaluationService {
     if (!token || token.length < 10) {
       throw new ValidationError("Token de avaliacao invalido");
     }
-    const cycle = Database.findCycleEvaluationByToken(token);
+    const cycle = await this.cycleRepo.findByToken(token);
     if (!cycle) throw new NotFoundError("Avaliacao de Ciclo", token);
     return cycle;
   }

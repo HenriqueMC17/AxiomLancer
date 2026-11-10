@@ -1,8 +1,10 @@
-﻿import { Database } from "@/lib/db";
-import { Client, ToneOfVoice } from "@/core/domain/types";
+﻿import { Client, ToneOfVoice } from "@/core/domain/types";
 import { createClientSchema } from "@/core/domain/schemas";
 import { withAuth } from "@/app/api/_lib/withAuth";
 import { ApiResponse } from "@/lib/api-response";
+import { InMemoryClientRepository } from "@/infrastructure/repositories/in-memory/in-memory-client.repository";
+
+const clientRepo = new InMemoryClientRepository();
 
 /**
  * GET /api/clients
@@ -10,9 +12,8 @@ import { ApiResponse } from "@/lib/api-response";
  */
 export const GET = withAuth(async (_req, { session }) => {
   try {
-    const state = Database.getState();
-    const userClients = state.clients.filter((c) => c.user_id === session.userId);
-    return ApiResponse.ok({ clients: userClients });
+    const clients = await clientRepo.listByUser(session.userId);
+    return ApiResponse.ok({ clients });
   } catch (err) {
     return ApiResponse.error(err);
   }
@@ -30,7 +31,6 @@ export const POST = withAuth(async (req, { session }) => {
       return ApiResponse.error(parsed.error);
     }
 
-    const state = Database.getState();
     const newClient: Client = {
       id: "cli_" + Date.now(),
       user_id: session.userId,
@@ -43,8 +43,8 @@ export const POST = withAuth(async (req, { session }) => {
       created_at: new Date().toISOString(),
     };
 
-    state.clients.unshift(newClient);
-    return ApiResponse.ok({ client: newClient }, 201);
+    const created = await clientRepo.create(newClient);
+    return ApiResponse.ok({ client: created }, 201);
   } catch (err) {
     return ApiResponse.error(err);
   }

@@ -1,4 +1,4 @@
-import Decimal from "decimal.js";
+﻿import Decimal from "decimal.js";
 import { Contract } from "@/core/domain/types";
 import {
   CreateContractInput,
@@ -8,31 +8,36 @@ import {
   updateContractSchema,
   acceptContractSchema,
 } from "@/core/domain/schemas";
-import { Database } from "@/lib/db";
+import { IContractRepository } from "@/core/domain/ports/repositories/contract.repository.port";
 import { ValidationError, NotFoundError, BusinessRuleViolationError } from "@/core/errors/app-error";
 
 /**
  * Service de Dominio para Gestao de Contratos e Aceite Digital Imutavel.
  *
  * Principios:
+ * - Clean Architecture & Ports and Adapters: Depende exclusivamente de IContractRepository (Inversao de Dependencia).
  * - Aritmetica Rigorosa: Valores monetarios formatados e validados exclusivamente via decimal.js.
  * - Aceite Digital Criptografico: Gera carimbo de data/hora e hash de integridade juridica.
  * - Maquina de Estados: Apenas contratos PENDING_SIGNATURE podem receber aceite digital.
  * - Zero Trust: Isolamento estrito por usuario/freelancer.
  */
 export class ContractService {
+  constructor(
+    private readonly contractRepo: IContractRepository
+  ) {}
+
   public async listByUser(userId: string): Promise<Contract[]> {
     if (!userId || userId.trim() === "") {
       throw new ValidationError("Identificador de usuario obrigatorio");
     }
-    return Database.listContracts(userId);
+    return this.contractRepo.listByUser(userId);
   }
 
   public async getById(id: string, userId: string): Promise<Contract> {
     if (!id || !userId) {
       throw new ValidationError("ID do contrato e do usuario sao obrigatorios");
     }
-    const contract = Database.findContract(id, userId);
+    const contract = await this.contractRepo.findById(id, userId);
     if (!contract) {
       throw new NotFoundError("Contrato", id);
     }
@@ -66,8 +71,9 @@ export class ContractService {
       created_at: new Date().toISOString(),
     };
 
-    const created = Database.createContract(newContract);
-    return Database.findContract(created.id, userId) ?? created;
+    const created = await this.contractRepo.create(newContract);
+    const refreshed = await this.contractRepo.findById(created.id, userId);
+    return refreshed ?? created;
   }
 
   public async update(id: string, userId: string, input: UpdateContractInput): Promise<Contract> {
@@ -80,7 +86,7 @@ export class ContractService {
       throw new ValidationError("Dados de atualizacao do contrato invalidos", parsed.error.flatten());
     }
 
-    const current = Database.findContract(id, userId);
+    const current = await this.contractRepo.findById(id, userId);
     if (!current) {
       throw new NotFoundError("Contrato", id);
     }
@@ -105,12 +111,13 @@ export class ContractService {
     if (parsed.data.terms_clause) updatePayload.terms_clause = parsed.data.terms_clause.trim();
     if (parsed.data.status) updatePayload.status = parsed.data.status;
 
-    const updated = Database.updateContract(id, userId, updatePayload);
+    const updated = await this.contractRepo.update(id, userId, updatePayload);
     if (!updated) {
       throw new NotFoundError("Contrato", id);
     }
 
-    return Database.findContract(id, userId) ?? updated;
+    const refreshed = await this.contractRepo.findById(id, userId);
+    return refreshed ?? updated;
   }
 
   /**
@@ -131,7 +138,7 @@ export class ContractService {
       throw new ValidationError("Dados de aceite digital invalidos", parsed.error.flatten());
     }
 
-    const contract = Database.findContract(id, userId);
+    const contract = await this.contractRepo.findById(id, userId);
     if (!contract) {
       throw new NotFoundError("Contrato", id);
     }
@@ -145,7 +152,7 @@ export class ContractService {
 
     const acceptedAt = new Date().toISOString();
 
-    // Hash criptografico simulado do aceite para garantir nao-repudio
+    // Hash criptografico do aceite para garantir nao-repudio
     const rawSignaturePayload = `${contract.id}|${contract.contract_value}|${parsed.data.signer_email}|${acceptedAt}|${clientIp}`;
     let hashNum = 0;
     for (let i = 0; i < rawSignaturePayload.length; i++) {
@@ -163,12 +170,13 @@ export class ContractService {
       signature_hash: signatureHash,
     };
 
-    const updated = Database.updateContract(id, userId, acceptedData);
+    const updated = await this.contractRepo.update(id, userId, acceptedData);
     if (!updated) {
       throw new NotFoundError("Contrato", id);
     }
 
-    return Database.findContract(id, userId) ?? updated;
+    const refreshed = await this.contractRepo.findById(id, userId);
+    return refreshed ?? updated;
   }
 
   public async delete(id: string, userId: string): Promise<boolean> {
@@ -176,7 +184,7 @@ export class ContractService {
       throw new ValidationError("ID do contrato e do usuario sao obrigatorios");
     }
 
-    const contract = Database.findContract(id, userId);
+    const contract = await this.contractRepo.findById(id, userId);
     if (!contract) {
       throw new NotFoundError("Contrato", id);
     }
@@ -188,7 +196,7 @@ export class ContractService {
       );
     }
 
-    const deleted = Database.deleteContract(id, userId);
+    const deleted = await this.contractRepo.delete(id, userId);
     if (!deleted) {
       throw new NotFoundError("Contrato", id);
     }

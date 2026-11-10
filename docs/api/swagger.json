@@ -1,18 +1,18 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "AxiomLancer SaaS - Core Financial & Contract API",
+    "title": "AxiomLancer SaaS - Core Financial, Legal & Compliance API",
     "version": "1.0.0",
-    "description": "API RESTful corporativa para gestao financeira autonoma, templates de cobranca e formalizacao juridica de contratos com aceite digital imutavel."
+    "description": "API RESTful corporativa para gestao financeira autonoma, faturamento preditivo, conciliacao bancaria PIX e formalizacao juridica de contratos com aceite digital imutavel."
   },
   "servers": [
     {
       "url": "http://localhost:3000/api/v1",
-      "description": "Servidor Local / V1"
+      "description": "Servidor Canonico / V1"
     },
     {
       "url": "http://localhost:3000/api",
-      "description": "Servidor Local / Standard"
+      "description": "Servidor Standard / Legado"
     }
   ],
   "components": {
@@ -21,7 +21,7 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "axiom_session",
-        "description": "JWT assinado transmitido exclusivamente via cookie HttpOnly (Zero Trust)."
+        "description": "JWT assinado transmitido exclusivamente via cookie HttpOnly (Zero Trust / BFF Pattern)."
       }
     },
     "schemas": {
@@ -41,88 +41,53 @@
           "WHATSAPP"
         ]
       },
-      "MessageTemplate": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "tmpl_1730419200"
-          },
-          "user_id": {
-            "type": "string",
-            "example": "usr_7keys_001"
-          },
-          "tone_of_voice": {
-            "$ref": "#/components/schemas/ToneOfVoice"
-          },
-          "channel": {
-            "$ref": "#/components/schemas/ChannelType"
-          },
-          "subject": {
-            "type": "string",
-            "example": "Lembrete amigavel: Fatura {{invoice_number}} vence em breve"
-          },
-          "body": {
-            "type": "string",
-            "example": "Ola {{client_name}}, sua fatura no valor de {{gross_value}} vence em {{due_date}}."
-          }
-        },
-        "required": [
-          "id",
-          "user_id",
-          "tone_of_voice",
-          "channel",
-          "subject",
-          "body"
+      "InvoiceStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "PENDING",
+          "PAID",
+          "OVERDUE",
+          "CANCELED"
         ]
       },
-      "CreateTemplateRequest": {
-        "type": "object",
-        "required": [
-          "tone_of_voice",
-          "channel",
-          "subject",
-          "body"
-        ],
-        "properties": {
-          "tone_of_voice": {
-            "$ref": "#/components/schemas/ToneOfVoice"
-          },
-          "channel": {
-            "$ref": "#/components/schemas/ChannelType"
-          },
-          "subject": {
-            "type": "string",
-            "minLength": 3,
-            "example": "Lembrete: Fatura {{invoice_number}}"
-          },
-          "body": {
-            "type": "string",
-            "minLength": 10,
-            "example": "Ola {{client_name}}, a sua fatura {{invoice_number}} esta disponivel. Chave PIX: {{pix_key}}"
-          }
-        }
+      "ContractStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "COMPLETED",
+          "CANCELED",
+          "PENDING_SIGNATURE"
+        ]
       },
-      "UpdateTemplateRequest": {
-        "type": "object",
-        "properties": {
-          "tone_of_voice": {
-            "$ref": "#/components/schemas/ToneOfVoice"
-          },
-          "channel": {
-            "$ref": "#/components/schemas/ChannelType"
-          },
-          "subject": {
-            "type": "string",
-            "minLength": 3
-          },
-          "body": {
-            "type": "string",
-            "minLength": 10
-          }
-        }
+      "ExpenseCategory": {
+        "type": "string",
+        "enum": [
+          "INFRA",
+          "SAAS",
+          "CONTABILIDADE",
+          "EQUIPAMENTO",
+          "IMPOSTOS",
+          "OUTROS"
+        ]
       },
-      "ApiErrorEnvelope": {
+      "CycleTriggerType": {
+        "type": "string",
+        "enum": [
+          "MILESTONE_10_PROJECTS",
+          "MONTHLY_30_DAYS",
+          "MANUAL"
+        ]
+      },
+      "CycleEvaluationStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "COMPLETED",
+          "EXPIRED"
+        ]
+      },
+      "StandardError": {
         "type": "object",
         "properties": {
           "error": {
@@ -131,7 +96,7 @@
           },
           "message": {
             "type": "string",
-            "example": "Dados do template invalidos"
+            "example": "Os dados enviados sao invalidos"
           },
           "context": {
             "type": "object"
@@ -139,384 +104,6 @@
           "timestamp": {
             "type": "string",
             "format": "date-time"
-          }
-        }
-      },
-      "ContractStatus": {
-        "type": "string",
-        "enum": [
-          "PENDING_SIGNATURE",
-          "ACTIVE",
-          "COMPLETED",
-          "CANCELED"
-        ],
-        "example": "PENDING_SIGNATURE"
-      },
-      "Contract": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "cnt_01"
-          },
-          "user_id": {
-            "type": "string",
-            "example": "usr_7keys_001"
-          },
-          "client_id": {
-            "type": "string",
-            "example": "cli_acme"
-          },
-          "client_name": {
-            "type": "string",
-            "example": "Acme Corp Dev Lab"
-          },
-          "title": {
-            "type": "string",
-            "example": "Desenvolvimento de Motor de Cobranca Autonoma"
-          },
-          "description": {
-            "type": "string",
-            "example": "Construcao de esteira deterministica com split tributario."
-          },
-          "contract_value": {
-            "type": "number",
-            "format": "double",
-            "example": 24500
-          },
-          "status": {
-            "$ref": "#/components/schemas/ContractStatus"
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date",
-            "example": "2026-01-10"
-          },
-          "end_date": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "2026-06-30"
-          },
-          "terms_clause": {
-            "type": "string",
-            "example": "Clausula 1: Entregas validadas quinzenalmente..."
-          },
-          "accepted_at": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true,
-            "example": "2026-01-10T11:30:00Z"
-          },
-          "signer_name": {
-            "type": "string",
-            "nullable": true,
-            "example": "Carlos Eduardo Menezes"
-          },
-          "signer_email": {
-            "type": "string",
-            "format": "email",
-            "nullable": true,
-            "example": "carlos@acmedev.io"
-          },
-          "signer_ip": {
-            "type": "string",
-            "nullable": true,
-            "example": "187.54.12.98"
-          },
-          "signature_hash": {
-            "type": "string",
-            "nullable": true,
-            "example": "sha256_e49b81f9a0c213e8_acme_2026"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "required": [
-          "id",
-          "user_id",
-          "client_id",
-          "title",
-          "contract_value",
-          "status",
-          "start_date",
-          "terms_clause",
-          "created_at"
-        ]
-      },
-      "CreateContractRequest": {
-        "type": "object",
-        "required": [
-          "client_id",
-          "title",
-          "contract_value",
-          "start_date",
-          "terms_clause"
-        ],
-        "properties": {
-          "client_id": {
-            "type": "string",
-            "example": "cli_acme"
-          },
-          "title": {
-            "type": "string",
-            "example": "Contrato de Engenharia de Software"
-          },
-          "description": {
-            "type": "string",
-            "example": "Desenvolvimento de APIs e microsservicos resilientes"
-          },
-          "contract_value": {
-            "type": "number",
-            "example": 18000,
-            "description": "Valor monetario calculado com precisao decimal.js Decimal(12,2)"
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date",
-            "example": "2026-03-01"
-          },
-          "end_date": {
-            "type": "string",
-            "format": "date",
-            "nullable": true,
-            "example": "2026-08-31"
-          },
-          "terms_clause": {
-            "type": "string",
-            "example": "Clausula 1: Entregas em 3 etapas com smart escrow..."
-          }
-        }
-      },
-      "UpdateContractRequest": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "example": "Contrato de Engenharia de Software (Revisado)"
-          },
-          "description": {
-            "type": "string"
-          },
-          "contract_value": {
-            "type": "number",
-            "example": 20000
-          },
-          "start_date": {
-            "type": "string",
-            "format": "date"
-          },
-          "end_date": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "terms_clause": {
-            "type": "string"
-          },
-          "status": {
-            "$ref": "#/components/schemas/ContractStatus"
-          }
-        }
-      },
-      "AcceptContractRequest": {
-        "type": "object",
-        "required": [
-          "signer_name",
-          "signer_email",
-          "confirm_terms"
-        ],
-        "properties": {
-          "signer_name": {
-            "type": "string",
-            "example": "Carlos Eduardo Menezes"
-          },
-          "signer_email": {
-            "type": "string",
-            "format": "email",
-            "example": "carlos@acmedev.io"
-          },
-          "confirm_terms": {
-            "type": "boolean",
-            "enum": [
-              true
-            ],
-            "example": true,
-            "description": "Concordancia juridica expressa com os termos e valores pactuados"
-          }
-        }
-      },
-      "CycleTriggerType": {
-        "type": "string",
-        "enum": [
-          "MILESTONE_10_PROJECTS",
-          "MONTHLY_30_DAYS",
-          "MANUAL"
-        ],
-        "example": "MILESTONE_10_PROJECTS"
-      },
-      "CycleEvaluationStatus": {
-        "type": "string",
-        "enum": [
-          "PENDING",
-          "COMPLETED",
-          "EXPIRED"
-        ],
-        "example": "COMPLETED"
-      },
-      "CycleEvaluation": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "cyc_1730592000000_a1b2"
-          },
-          "user_id": {
-            "type": "string",
-            "example": "usr_7keys_001"
-          },
-          "client_id": {
-            "type": "string",
-            "example": "cli_acme"
-          },
-          "cycle_identifier": {
-            "type": "string",
-            "example": "cycle_m10_cli_acme_2026-11"
-          },
-          "trigger_type": {
-            "$ref": "#/components/schemas/CycleTriggerType"
-          },
-          "status": {
-            "$ref": "#/components/schemas/CycleEvaluationStatus"
-          },
-          "score_communication": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "score_proactivity": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 4.8
-          },
-          "score_results": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "score_understanding": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 4.9
-          },
-          "score_demand_delivery": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "general_score": {
-            "type": "number",
-            "example": 4.94
-          },
-          "comments": {
-            "type": "string",
-            "example": "Desempenho excepcional de nivel Staff Engineer."
-          },
-          "invitation_token": {
-            "type": "string",
-            "example": "tkn_mvzyqdrb_vy50fv_dlprwmwt"
-          },
-          "invitation_sent_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "completed_at": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "client_name": {
-            "type": "string",
-            "example": "Acme Corporation"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time"
-          }
-        }
-      },
-      "TriggerCycleEvaluationRequest": {
-        "type": "object",
-        "required": [
-          "client_id",
-          "trigger_type"
-        ],
-        "properties": {
-          "client_id": {
-            "type": "string",
-            "example": "cli_acme"
-          },
-          "trigger_type": {
-            "$ref": "#/components/schemas/CycleTriggerType"
-          }
-        }
-      },
-      "SubmitCycleFeedbackRequest": {
-        "type": "object",
-        "required": [
-          "score_communication",
-          "score_proactivity",
-          "score_results",
-          "score_understanding",
-          "score_demand_delivery",
-          "comments"
-        ],
-        "properties": {
-          "score_communication": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "score_proactivity": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 4.5
-          },
-          "score_results": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "score_understanding": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 4.8
-          },
-          "score_demand_delivery": {
-            "type": "number",
-            "minimum": 1,
-            "maximum": 5,
-            "example": 5
-          },
-          "comments": {
-            "type": "string",
-            "minLength": 15,
-            "maxLength": 2000,
-            "example": "Excelente comunicacao, entregas pontuais e alto entendimento do negocio."
           }
         }
       }
@@ -528,79 +115,665 @@
     }
   ],
   "paths": {
-    "/message-templates": {
-      "get": {
-        "summary": "Lista todos os templates do usuario autenticado",
-        "responses": {
-          "200": {
-            "description": "Lista de templates",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "templates": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/MessageTemplate"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Nao autorizado ou sessao invalida"
-          }
-        }
-      },
+    "/auth/login": {
       "post": {
-        "summary": "Cria um novo template de mensagem",
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Autenticacao corporativa com emissao de cookie HttpOnly",
+        "security": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateTemplateRequest"
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 6
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Autenticacao realizada com sucesso"
+          },
+          "401": {
+            "description": "Credenciais invalidas"
+          },
+          "429": {
+            "description": "Rate limit excedido"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Encerramento seguro de sessao",
+        "responses": {
+          "200": {
+            "description": "Cookie revogado com sucesso"
+          }
+        }
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Sumarizacao financeira de caixa, OPEX e margem liquida real (decimal.js)",
+        "responses": {
+          "200": {
+            "description": "Resumo financeiro consolidado"
+          }
+        }
+      }
+    },
+    "/clients": {
+      "get": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Lista clientes cadastrados do usuario autenticado (Zero Trust)",
+        "responses": {
+          "200": {
+            "description": "Lista de clientes"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Cadastra novo cliente corporativo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "legal_name",
+                  "email",
+                  "tone_of_voice"
+                ],
+                "properties": {
+                  "legal_name": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "tone_of_voice": {
+                    "$ref": "#/components/schemas/ToneOfVoice"
+                  },
+                  "billing_paused": {
+                    "type": "boolean"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Template criado com sucesso",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "template": {
-                      "$ref": "#/components/schemas/MessageTemplate"
-                    }
-                  }
-                }
-              }
+            "description": "Cliente cadastrado com sucesso"
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "put": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Atualiza cadastro de cliente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente atualizado"
           },
-          "400": {
-            "description": "Erro de validacao (Fail Fast Zod)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelope"
-                }
-              }
+          "404": {
+            "description": "Cliente nao encontrado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Clients"
+        ],
+        "summary": "Remove cliente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
-          },
-          "401": {
-            "description": "Nao autorizado"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Cliente removido com sucesso"
+          }
+        }
+      }
+    },
+    "/invoices": {
+      "get": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Lista faturas emitidas pelo usuario",
+        "responses": {
+          "200": {
+            "description": "Faturas do usuario"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Emite nova fatura com provisao automatica de DAS (Fator R)",
+        "responses": {
+          "201": {
+            "description": "Fatura emitida com sucesso"
+          }
+        }
+      }
+    },
+    "/invoices/{id}/recover": {
+      "post": {
+        "tags": [
+          "Invoices"
+        ],
+        "summary": "Recupera fatura inadimplente aplicando retencao de 5% de Success Fee",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fatura liquidada com retencao de take rate"
+          }
+        }
+      }
+    },
+    "/contracts": {
+      "get": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Lista todos os contratos do freelancer",
+        "responses": {
+          "200": {
+            "description": "Lista de contratos"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Emite novo contrato com clausulas e termos de aceite",
+        "responses": {
+          "201": {
+            "description": "Contrato emitido em minuta"
+          }
+        }
+      }
+    },
+    "/contracts/{id}": {
+      "put": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Atualiza minuta de contrato pendente",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato atualizado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Remove contrato em minuta",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato removido"
+          }
+        }
+      }
+    },
+    "/contracts/{id}/accept": {
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "summary": "Aceite digital formal com registro de IP e hash criptografico de nao-repudio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contrato aceito digitalmente e ativado"
+          }
+        }
+      }
+    },
+    "/cycle-evaluations": {
+      "get": {
+        "tags": [
+          "CycleEvaluations"
+        ],
+        "summary": "Lista avaliacoes de ciclo recorrente (10 projetos / 30 dias)",
+        "responses": {
+          "200": {
+            "description": "Lista de avaliacoes"
+          }
+        }
+      }
+    },
+    "/cycle-evaluations/trigger": {
+      "post": {
+        "tags": [
+          "CycleEvaluations"
+        ],
+        "summary": "Dispara avaliacao de ciclo para cliente ativo",
+        "responses": {
+          "201": {
+            "description": "Convite de avaliacao emitido"
+          }
+        }
+      }
+    },
+    "/cycle-evaluations/{token}": {
+      "get": {
+        "tags": [
+          "CycleEvaluations"
+        ],
+        "summary": "Consulta publica do convite de avaliacao via token seguro",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dados do convite para preenchimento"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "CycleEvaluations"
+        ],
+        "summary": "Submissao publica de notas de 5 dimensoes qualitativas",
+        "security": [],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Feedback computado e score recalculado"
+          }
+        }
+      }
+    },
+    "/expenses": {
+      "get": {
+        "tags": [
+          "Expenses"
+        ],
+        "summary": "Lista despesas operacionais do usuario",
+        "responses": {
+          "200": {
+            "description": "Lista de despesas"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Expenses"
+        ],
+        "summary": "Cadastra nova despesa operacional (OPEX)",
+        "responses": {
+          "201": {
+            "description": "Despesa registrada com sucesso"
+          }
+        }
+      }
+    },
+    "/expenses/{id}": {
+      "put": {
+        "tags": [
+          "Expenses"
+        ],
+        "summary": "Atualiza dados de despesa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Despesa atualizada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Expenses"
+        ],
+        "summary": "Remove despesa",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Despesa removida"
+          }
+        }
+      }
+    },
+    "/projects": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Lista portfolio de projetos com mascaramento LGPD",
+        "responses": {
+          "200": {
+            "description": "Projetos do portfolio"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Cadastra novo projeto no portfolio",
+        "responses": {
+          "201": {
+            "description": "Projeto cadastrado com sucesso"
+          }
+        }
+      }
+    },
+    "/projects/{id}": {
+      "put": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Atualiza informacoes do projeto",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Projeto atualizado"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Projects"
+        ],
+        "summary": "Remove projeto do portfolio",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Projeto removido"
+          }
+        }
+      }
+    },
+    "/feedbacks": {
+      "post": {
+        "tags": [
+          "Feedbacks"
+        ],
+        "summary": "Submete feedback pontual de projeto com recalculo assincrono em background",
+        "responses": {
+          "201": {
+            "description": "Feedback gravado e job enfileirado"
+          }
+        }
+      }
+    },
+    "/panic-button": {
+      "get": {
+        "tags": [
+          "PanicButton"
+        ],
+        "summary": "Consulta estado do Safe Mode (< 12ms)",
+        "responses": {
+          "200": {
+            "description": "Estado do circuito de seguranca"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PanicButton"
+        ],
+        "summary": "Alterna pausa emergencial de cobranca com latencia sub-12ms",
+        "responses": {
+          "200": {
+            "description": "Circuito alterado com telemetria"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Obtem perfil do usuario autenticado (Zero Trust)",
+        "responses": {
+          "200": {
+            "description": "Perfil do usuario"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Atualiza informacoes cadastrais do usuario autenticado",
+        "responses": {
+          "200": {
+            "description": "Perfil atualizado com sucesso"
+          }
+        }
+      }
+    },
+    "/profile/score": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Consulta score ponderado de reputacao do freelancer",
+        "responses": {
+          "200": {
+            "description": "Score de reputacao detalhado"
+          }
+        }
+      }
+    },
+    "/dre": {
+      "get": {
+        "tags": [
+          "FinancialBI"
+        ],
+        "summary": "Demonstrativo de Resultado do Exercicio (DRE) com margem EBITDA",
+        "responses": {
+          "200": {
+            "description": "DRE calculado via decimal.js"
+          }
+        }
+      }
+    },
+    "/pricing": {
+      "post": {
+        "tags": [
+          "FinancialBI"
+        ],
+        "summary": "Calculadora de precificacao ideal por hora e projeto com provisao tributaria",
+        "responses": {
+          "200": {
+            "description": "Analise de precificacao minima e ideal"
+          }
+        }
+      }
+    },
+    "/predictive-cashflow": {
+      "get": {
+        "tags": [
+          "FinancialBI"
+        ],
+        "summary": "Fluxo de caixa preditivo projetado para 30, 60 e 90 dias",
+        "responses": {
+          "200": {
+            "description": "Projecao preditiva de liquidez"
+          }
+        }
+      }
+    },
+    "/message-templates": {
+      "get": {
+        "tags": [
+          "MessageTemplates"
+        ],
+        "summary": "Lista templates de cobranca customizados",
+        "responses": {
+          "200": {
+            "description": "Templates disponiveis"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "MessageTemplates"
+        ],
+        "summary": "Cria template de mensagem multicanal",
+        "responses": {
+          "201": {
+            "description": "Template criado com sucesso"
           }
         }
       }
     },
     "/message-templates/{id}": {
       "put": {
+        "tags": [
+          "MessageTemplates"
+        ],
         "summary": "Atualiza template existente",
         "parameters": [
           {
@@ -612,27 +785,17 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTemplateRequest"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Template atualizado"
-          },
-          "404": {
-            "description": "Template nao encontrado ou acesso nao autorizado"
           }
         }
       },
       "delete": {
-        "summary": "Remove template existente",
+        "tags": [
+          "MessageTemplates"
+        ],
+        "summary": "Remove template",
         "parameters": [
           {
             "name": "id",
@@ -645,403 +808,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Removido com sucesso"
-          },
-          "404": {
-            "description": "Template nao encontrado ou acesso nao autorizado"
-          }
-        }
-      }
-    },
-    "/contracts": {
-      "get": {
-        "summary": "Lista todos os contratos do freelancer autenticado (Zero Trust)",
-        "responses": {
-          "200": {
-            "description": "Lista de contratos vinculados ao usuario",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contracts": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Contract"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Nao autorizado ou sessao ausente"
-          }
-        }
-      },
-      "post": {
-        "summary": "Emite novo contrato de prestacao de servicos com validacao estrita Zod e decimal.js",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateContractRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Contrato emitido em estado PENDING_SIGNATURE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contract": {
-                      "$ref": "#/components/schemas/Contract"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Erro de validacao temporal ou monetaria (Fail Fast Zod)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiErrorEnvelope"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Nao autorizado"
-          }
-        }
-      }
-    },
-    "/contracts/{id}": {
-      "put": {
-        "summary": "Atualiza termos de um contrato em minuta (PENDING_SIGNATURE)",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Identificador UUID do contrato"
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateContractRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Contrato atualizado com sucesso",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contract": {
-                      "$ref": "#/components/schemas/Contract"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Violacao de regra de negocio (contrato ja assinado e imutavel)"
-          },
-          "404": {
-            "description": "Contrato nao encontrado"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Remove contrato em minuta (apenas PENDING_SIGNATURE)",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Contrato removido com sucesso"
-          },
-          "400": {
-            "description": "Impossivel remover contrato ativo/assinado"
-          },
-          "404": {
-            "description": "Contrato nao encontrado"
-          }
-        }
-      }
-    },
-    "/contracts/{id}/accept": {
-      "post": {
-        "summary": "Registra o aceite digital imutavel do contrato gerando carimbo de data/hora e hash SHA-256",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/AcceptContractRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Aceite digital formalizado e contrato transicionado para ACTIVE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "message": {
-                      "type": "string",
-                      "example": "Contrato aceito digitalmente com sucesso."
-                    },
-                    "contract": {
-                      "$ref": "#/components/schemas/Contract"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Contrato ja assinado ou dados de confirmacao invalidos"
-          },
-          "404": {
-            "description": "Contrato nao encontrado"
-          }
-        }
-      }
-    },
-    "/cycle-evaluations": {
-      "get": {
-        "summary": "Lista todas as avaliacoes de ciclo do freelancer autenticado (Zero Trust)",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Lista de avaliacoes de ciclo",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/CycleEvaluation"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Nao autenticado (ausencia de cookie axiom_session)"
-          }
-        }
-      }
-    },
-    "/cycle-evaluations/trigger": {
-      "post": {
-        "summary": "Dispara manualmente uma avaliacao de ciclo para um cliente especifico",
-        "security": [
-          {
-            "cookieAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TriggerCycleEvaluationRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Ciclo criado com status PENDING e convite disparado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/CycleEvaluation"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Ciclo ja disparado (conflito de idempotencia) ou dados invalidos"
-          }
-        }
-      }
-    },
-    "/cycle-evaluations/{token}": {
-      "get": {
-        "summary": "Rota publica: busca informacoes basicas do ciclo para preenchimento pelo cliente",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Metadados do ciclo pendente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "cycle_identifier": {
-                          "type": "string"
-                        },
-                        "trigger_type": {
-                          "type": "string"
-                        },
-                        "status": {
-                          "type": "string"
-                        },
-                        "client_id": {
-                          "type": "string"
-                        },
-                        "invitation_sent_at": {
-                          "type": "string"
-                        },
-                        "completed_at": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Convite de avaliacao nao encontrado"
-          }
-        }
-      },
-      "post": {
-        "summary": "Rota publica: submete o feedback qualitativo do cliente validado por Zod",
-        "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SubmitCycleFeedbackRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Avaliacao concluida e score geral recalculado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "example": true
-                    },
-                    "data": {
-                      "$ref": "#/components/schemas/CycleEvaluation"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Falha de validacao Fail Fast Zod"
-          },
-          "422": {
-            "description": "Avaliacao ja respondida ou expirada"
+            "description": "Template removido"
           }
         }
       }

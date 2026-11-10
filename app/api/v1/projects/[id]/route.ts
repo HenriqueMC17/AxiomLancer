@@ -1,1 +1,0 @@
-export { PUT, DELETE } from "@/app/api/projects/[id]/route";
