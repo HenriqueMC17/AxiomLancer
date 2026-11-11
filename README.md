@@ -2,30 +2,6 @@
 
 <div align="center">
 
-![Next.js 15](https://img.shields.io/badge/Next.js-15.5.18-black?style=for-the-badge&logo=next.js)
-![React 19](https://img.shields.io/badge/React-19-blue?style=for-the-badge&logo=react)
-![TypeScript 5](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript)
-![Convex Cloud](https://img.shields.io/badge/Convex-Reactive_DB-F35C3E?style=for-the-badge&logo=convex)
-![Vitest](https://img.shields.io/badge/Vitest-Unit_Tests-6E9F18?style=for-the-badge&logo=vitest)
-![Architecture](https://img.shields.io/badge/Clean_Architecture-Hexagonal-00C7B7?style=for-the-badge)
-![Governança](https://img.shields.io/badge/Governança-7Keys_Core-emerald?style=for-the-badge)
-
-<p align="center">
-  <strong>Plataforma SaaS FinTech de Faturamento Autônomo, Split Tributário (Fator R) e Cobrança Preditiva</strong><br />
-  Projetada e mantida pelo time <strong>7Keys</strong> para desenvolvedores seniores, freelancers técnicos e microagências boutique.
-</p>
-
-[Visão Geral](#1-visão-geral--proposta-de-valor) •
-[Engenharia Financeira](#2-motores-de-engenharia-financeira) •
-[Clean Architecture](#3-arquitetura-do-sistema--clean-architecture) •
-[Banco de Dados & Convex](#4-banco-de-dados--dupla-persistência) •
-[Segurança & Governança](#5-segurança--governança-técnica) •
-[Testes Automatizados](#6-qualidade--testes-automatizados) •
-[Como Executar](#7-guia-de-execução--deploy) •
-[Governança e Autoria](#8-governança-e-autoria)
-
-</div>
-
 ---
 
 ## 1. Visão Geral & Proposta de Valor
@@ -49,13 +25,16 @@ O **AxiomLancer** rompe definitivamente com o modelo de planilhas estáticas e E
 ## 2. Motores de Engenharia Financeira
 
 ### 2.1. Régua de Cobrança Autônoma & Máquina de Estados
+
 A esteira atua baseada em janelas temporais relativas à data de vencimento (D):
+
 * **D-3 (Cortesia Preventiva):** Notificação cordial por e-mail com incentivo de pontualidade.
 * **D-0 (Dia do Vencimento):** Disparo executivo via WhatsApp com payload PIX dinâmico e QR Code.
 * **D+3 (Lembrete Assertivo):** Aviso pontual de atraso com recálculo automático de juros e multa pro-rata.
 * **D+7 (Notificação Formal):** Notificação com registro de entrega antes de medidas de suspensão de serviços.
 
 ### 2.2. Motor Tributário do Simples Nacional (Fator R)
+
 Calcula em runtime o enquadramento na Lei Complementar nº 123/2006:
 
 ```text
@@ -67,9 +46,11 @@ Fator R = Folha de Pagamento Anual (incluindo pró-labore) / Receita Bruta Total
 * O valor provisionado é retido preventivamente no **Cofre Virtual DAS**, garantindo que o lucro pessoal do freelancer nunca se misture com a obrigação tributária.
 
 ### 2.3. PIX Dinâmico BACEN (CRC16-CCITT)
+
 Geração nativa de strings Copia e Cola em conformidade com o Manual de Padrões para Iniciação do PIX (Resolução BCB nº 1/2020), calculada pelo Value Object `PixPayload` com validação estrita de integridade via checksum CRC16-CCITT polimórfico.
 
 ### 2.4. Módulo de Gestão de Contratos & Aceite Digital Imutável
+
 * **Formalização Preventiva:** Registro antecipado do escopo, termos contratuais e remuneração antes do faturamento para blindar contra disputas e inadimplência.
 * **Validação de Borda (Fail Fast):** Verificação temporal estrita (`start_date <= end_date` ou `end_date = null` para prazos indeterminados) e termos mínimos via Zod.
 * **Aritmética Monetária Exata:** Todos os valores contratuais processados com `decimal.js` com arredondamento regulatório `ROUND_HALF_UP` e tipo `DECIMAL(12,2)`.
@@ -77,6 +58,7 @@ Geração nativa de strings Copia e Cola em conformidade com o Manual de Padrõe
 * **Imutabilidade e Máquina de Estados:** Contratos aceitos (`ACTIVE`) têm seus termos bloqueados contra adulterações e contam com proteção estrita contra exclusão acidental.
 
 ### 2.5. Sistema de Avaliação Recorrente de Ciclo (Milestone 10 Projetos ou 30 Dias)
+
 * **Gatilho Automatizado e Assíncrono:** Monitoramento contínuo de entregas que dispara automaticamente solicitações de feedback qualitativo ao atingir 10 contratos/projetos concluídos ou 30 dias de ciclo contínuo com a empresa.
 * **5 Dimensões Qualitativas:** Avaliação granular abrangendo Atendimento à Demanda, Comunicação, Apresentação de Resultados, Proatividade em Reuniões e Entendimento da Dor do Cliente.
 * **Controle Estrito de Idempotência:** Chave determinística de ciclo (`cycle_identifier`) com índice UNIQUE, prevenindo envio e submissão duplicada de convites.
@@ -134,6 +116,7 @@ c:\Dev\AxiomLancer\
 ```
 
 ### Princípio da Inversão de Dependência (DIP)
+
 Nenhum serviço de domínio depende diretamente de bibliotecas de terceiros ou adaptadores de banco de dados. As dependências são injetadas explicitamente através de suas portas:
 
 ```typescript
@@ -155,6 +138,7 @@ export class ContractService {
 O AxiomLancer adota uma estratégia moderna de **dupla persistência complementar**:
 
 ### 4.1. Convex Cloud (Reativo em Tempo Real)
+
 * Persistência reativa para sincronização instantânea de estado na interface do usuário sem polling.
 * Tabelas estritamente tipadas em `convex/schema.ts`:
   * `clients`: Gestão de contratantes e histórico de pagamentos.
@@ -167,6 +151,7 @@ O AxiomLancer adota uma estratégia moderna de **dupla persistência complementa
   * `project_feedbacks`: Feedbacks granulares recebidos por dimensão.
 
 ### 4.2. Prisma ORM & PostgreSQL (Relacional & Governança Fiduciária)
+
 * Mapeamento relacional completo definido em `prisma/schema.prisma` alinhado ao esquema corporativo `AxiomLancer.sql`.
 * Campos monetários com precisão exata `Decimal(12,2)`.
 * Tabela `DeduplicationJournal` com hash SHA-256 para garantia de idempotência absoluta.
@@ -208,6 +193,7 @@ O sistema conta com cobertura abrangente de testes unitários desenvolvidos com 
 ```
 
 Para rodar a suíte completa de testes:
+
 ```bash
 pnpm test
 ```
@@ -217,6 +203,7 @@ pnpm test
 ## 7. Guia de Execução & Deploy
 
 ### Pré-requisitos
+
 * **Node.js:** Versão 20+ LTS (recomendado Node 20 ou 22)
 * **PNPM:** Versão 10+ ou 11+ (`npm install -g pnpm`)
 * **Conta Convex:** (Opcional para persistência remota na nuvem Convex)
@@ -267,6 +254,7 @@ CONVEX_DEPLOY_KEY=dev:trustworthy-otter-486|seu-token-de-deploy-convex
 ```
 
 ### Documentação de APIs & Governança de Contratos
+
 * **Swagger OpenAPI 3.0:** Arquivo canônico em `docs/api/swagger.json` documentando todos os 15 endpoints REST da aplicação.
 * **Postman Collection v2.1:** Coleção completa para testes e automação em `docs/api/postman_collection.json`.
 * **API Versioning:** Suporte a rewrites transparentes de `/api/v1/:path*` para `/api/:path*` configurado nativamente no `next.config.mjs`.
