@@ -1,269 +1,371 @@
-# AxiomLancer — Motor de Execução Financeira Autônoma
+﻿<div align="center">
 
-<div align="center">
+# ⚡ AxiomLancer
+### Motor de Execução Financeira Autônoma
 
----
+[![Stack](https://img.shields.io/badge/Stack-Next.js_15_%7C_TypeScript_%7C_Convex-0D0D0D?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![Architecture](https://img.shields.io/badge/Arquitetura-Hexagonal_%7C_Clean_Architecture-00FF87?style=flat-square)](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
+[![Tests](https://img.shields.io/badge/Testes-98_passed_%7C_10_suites-00FF87?style=flat-square&logo=vitest)](./tests)
+[![Governance](https://img.shields.io/badge/Governança-Zero_Trust_%7C_Zero_Secrets-FF6B35?style=flat-square)](./docs)
+[![License](https://img.shields.io/badge/Licença-Proprietário_7Keys-3D3D3D?style=flat-square)](./LICENSE)
 
-## 1. Visão Geral & Proposta de Valor
+> *Transforme código em dinheiro sem o constrangimento de cobrar clientes manualmente.*
 
-O **AxiomLancer** rompe definitivamente com o modelo de planilhas estáticas e ERPs passivos que exigem alimentação manual contínua. Ele atua como uma **esteira de execução ativa, silenciosa e determinística**:
+**Esteira de execução ativa, silenciosa e determinística para freelancers e agências.**  
+Pix dinâmico · Régua multicanal · Motor tributário · Previsio BI integrado
 
-* **Fim do Constrangimento de Cobrança:** Assume a régua de comunicação multicanal (WhatsApp, E-mail, SMS) com tom adaptativo e links de pagamento imediato.
-* **Recuperação de 10 a 15 Horas Semanais:** Elimina tarefas administrativas, conciliações bancárias manuais e conferência de comprovantes.
-* **Aritmética Monetária Exata:** Zero erros de ponto flutuante do padrão IEEE 754 através de `decimal.js` com arredondamento regulatório `ROUND_HALF_UP` e schema PostgreSQL `DECIMAL(12,2)`.
-* **Provisão Automática do Simples Nacional:** Separação imediata do imposto devido no cofre virtual no momento da liquidação (Fator R, Anexo III vs. Anexo V).
-* **Safe Mode (< 12ms):** Botão de Pânico com circuito atômico em memória para congelar qualquer disparo em menos de 12 milissegundos.
-* **Idempotência Estrita:** Registro de cada evento no `DeduplicationJournal` com hash SHA-256 para impedir cobranças repetidas.
-
-### Modelo de Negócio & Monetização (7Keys)
-
-1. **Assinatura Core (SaaS):** **R$ 49,90/mês** para acesso total à infraestrutura, faturamento ilimitado, Previsio BI, DRE gerencial e Smart Escrows.
-2. **Success Fee de Recuperação:** Taxa fixa de **5.00%** retida estritamente sobre faturas vencidas e inadimplentes que forem recuperadas pelo motor autônomo (faturas pagas em dia possuem taxa de R$ 0,00).
+</div>
 
 ---
 
-## 2. Motores de Engenharia Financeira
+## 1. Proposta de Valor
 
-### 2.1. Régua de Cobrança Autônoma & Máquina de Estados
+O AxiomLancer elimina os três gargalos que consomem a margem operacional de freelancers:
 
-A esteira atua baseada em janelas temporais relativas à data de vencimento (D):
+| Dor | Solução AxiomLancer | Resultado |
+|-----|---------------------|-----------|
+| Cobrar clientes causa constrangimento | Régua autônoma multicanal (WhatsApp + E-mail) com tom adaptativo | **Fim do constrangimento** |
+| Planilhas e conciliações manuais | Esteira determinística com PIX dinâmico e DeduplicationJournal | **10–15h/semana recuperadas** |
+| Imposto misturado com lucro | Cofre Virtual DAS com split automático no momento da liquidação | **Provisão do Simples Nacional garantida** |
+| Cobrança repetida / duplicada | Hash SHA-256 no `DeduplicationJournal` com idempotência estrita | **Zero cobranças duplicadas** |
+| Emergências de cobrança incontroláveis | Safe Mode atômico (< 12ms) via flag no Convex | **Interrupção instantânea** |
 
-* **D-3 (Cortesia Preventiva):** Notificação cordial por e-mail com incentivo de pontualidade.
-* **D-0 (Dia do Vencimento):** Disparo executivo via WhatsApp com payload PIX dinâmico e QR Code.
-* **D+3 (Lembrete Assertivo):** Aviso pontual de atraso com recálculo automático de juros e multa pro-rata.
-* **D+7 (Notificação Formal):** Notificação com registro de entrega antes de medidas de suspensão de serviços.
+### Modelo de Negócio (7Keys)
 
-### 2.2. Motor Tributário do Simples Nacional (Fator R)
-
-Calcula em runtime o enquadramento na Lei Complementar nº 123/2006:
-
-```text
-Fator R = Folha de Pagamento Anual (incluindo pró-labore) / Receita Bruta Total dos Últimos 12 Meses (RBT12)
+```
+Assinatura Core:    R$ 49,90/mês  —  acesso total à infraestrutura e Previsio BI
+Success Fee:        5,00%          —  apenas sobre faturas vencidas efetivamente recuperadas
+Faturas pagas em dia:  R$ 0,00    —  zero taxa sobre recebimentos pontuais
 ```
 
-* Se **Fator R >= 0.28 (28%)**: Enquadra no **Anexo III** (alíquota efetiva reduzida a partir de 6.00%).
-* Se **Fator R < 0.28**: Reclassifica para o **Anexo V** (alíquota a partir de 15.50%).
-* O valor provisionado é retido preventivamente no **Cofre Virtual DAS**, garantindo que o lucro pessoal do freelancer nunca se misture com a obrigação tributária.
+---
 
-### 2.3. PIX Dinâmico BACEN (CRC16-CCITT)
+## 2. Arquitetura — Hexagonal (Ports & Adapters)
 
-Geração nativa de strings Copia e Cola em conformidade com o Manual de Padrões para Iniciação do PIX (Resolução BCB nº 1/2020), calculada pelo Value Object `PixPayload` com validação estrita de integridade via checksum CRC16-CCITT polimórfico.
+Domínio financeiro blindado de qualquer detalhe de protocolo externo.  
+A lógica de negócio nunca importa frameworks, ORMs ou adaptadores.
 
-### 2.4. Módulo de Gestão de Contratos & Aceite Digital Imutável
+```
+C:\Dev\AxiomLancer\
+├── core/                          # [Domínio Puro — Zero dependências externas]
+│   ├── domain/
+│   │   ├── entities/              # Client, Invoice, Contract, CycleEvaluation
+│   │   ├── value-objects/         # PixPayload (CRC16), MonetaryAmount (decimal.js)
+│   │   └── ports/
+│   │       └── repositories/      # Interfaces: IInvoiceRepository, IClientRepository…
+│   ├── services/                  # ContractService, ProjectService, CycleEvaluationService
+│   └── errors/                    # AppError, NotFoundError, ForbiddenError
+│
+├── infrastructure/                # [Adaptadores — implementam as Ports do core]
+│   ├── repositories/
+│   │   └── in-memory/             # InMemoryInvoiceRepository, InMemoryClientRepository…
+│   ├── jobs/                      # CycleEvaluationTrigger.worker.ts
+│   └── database/                  # Database (estado em memória — SSoT para dev)
+│
+├── app/                           # [Presentation — Next.js App Router]
+│   └── api/
+│       ├── auth/login/            # JWT HS256 + timingSafeEqual (Zero Secrets)
+│       ├── invoices/              # CRUD + recover — BOLA-safe (userId scoped)
+│       ├── contracts/             # Máquina de estados + aceite digital imutável
+│       ├── projects/              # Gestão de projetos (DIP — injeção explícita)
+│       ├── cycle-evaluations/     # 5 dimensões qualitativas + gatilho assíncrono
+│       ├── clients/               # CRUD user-scoped via InMemoryClientRepository
+│       ├── expenses/              # OPEX categorizado via InMemoryExpenseRepository
+│       ├── dashboard/summary/     # DRE gerencial + saldo de caixa
+│       ├── predictive-cashflow/   # Horizonte 7–90 dias (Zod-validated)
+│       ├── billing-rules/         # Régua D-3 → D+7 (user-scoped)
+│       ├── feedbacks/             # GET + POST com ownership check
+│       └── dre/                   # DRE filtrado por userId (BOLA-safe)
+│
+├── components/                    # React Server Components (sem "use client" por padrão)
+│   └── axiom/                     # ContractManager, ProjectManager, OpexSummaryCards
+│
+├── tests/unit/                    # Vitest 3.x — 98 testes / 10 suites
+├── docs/api/                      # swagger.json + postman_collection.json
+└── .env.example                   # Template de variáveis (Zero Secrets by Design)
+```
 
-* **Formalização Preventiva:** Registro antecipado do escopo, termos contratuais e remuneração antes do faturamento para blindar contra disputas e inadimplência.
-* **Validação de Borda (Fail Fast):** Verificação temporal estrita (`start_date <= end_date` ou `end_date = null` para prazos indeterminados) e termos mínimos via Zod.
-* **Aritmética Monetária Exata:** Todos os valores contratuais processados com `decimal.js` com arredondamento regulatório `ROUND_HALF_UP` e tipo `DECIMAL(12,2)`.
-* **Aceite Digital com Não-Repúdio:** Registro formal com carimbo de data/hora (`accepted_at`), credenciais do signatário, IP de conexão (`signer_ip`) e hash SHA-256 (`signature_hash`).
-* **Imutabilidade e Máquina de Estados:** Contratos aceitos (`ACTIVE`) têm seus termos bloqueados contra adulterações e contam com proteção estrita contra exclusão acidental.
-
-### 2.5. Sistema de Avaliação Recorrente de Ciclo (Milestone 10 Projetos ou 30 Dias)
-
-* **Gatilho Automatizado e Assíncrono:** Monitoramento contínuo de entregas que dispara automaticamente solicitações de feedback qualitativo ao atingir 10 contratos/projetos concluídos ou 30 dias de ciclo contínuo com a empresa.
-* **5 Dimensões Qualitativas:** Avaliação granular abrangendo Atendimento à Demanda, Comunicação, Apresentação de Resultados, Proatividade em Reuniões e Entendimento da Dor do Cliente.
-* **Controle Estrito de Idempotência:** Chave determinística de ciclo (`cycle_identifier`) com índice UNIQUE, prevenindo envio e submissão duplicada de convites.
-* **Validação na Borda (Fail Fast com Zod):** Notas calibradas estritamente de 1.0 a 5.0 e comentário qualitativo mínimo de 15 caracteres antes de persistência.
-* **Aritmética Rigorosa:** Cálculo do `general_score` executado via `decimal.js` com política `ROUND_HALF_UP` e tipo de alta precisão `DECIMAL(12,2)`.
-* **Zero Trust & Form Público Seguro:** Token único de uso único (`tkn_*`) para preenchimento público sem expor credenciais ou APIs internas do freelancer.
-* **Performance Visual Instantânea:** Renderização via Server Components com reserva dimensional rígida (CLS = 0) e recálculo em cascata do score geral de reputação.
+> **Princípio de Inversão de Dependência (DIP):**  
+> `ContractService`, `ProjectService` e `CycleEvaluationService` recebem os repositórios via injeção explícita no construtor — nenhum serviço instancia seu próprio repositório.
 
 ---
 
-## 3. Arquitetura do Sistema — Clean Architecture
+## 3. Motores de Engenharia Financeira
 
-O projeto implementa rigorosamente os princípios da **Clean Architecture**, **Domain-Driven Design (DDD)** e **Ports and Adapters (Hexagonal)**, alinhados à Constituição `@agente-core`:
+### 3.1 Régua de Cobrança Autônoma — Máquina de Estados D-3 → D+7
 
-```text
-c:\Dev\AxiomLancer\
-├── app/
-│   ├── api/                          # Adaptadores de Entrada (Primary Adapters / REST API)
-│   │   ├── _lib/withAuth.ts          # Middleware Zero Trust, RBAC e injeção de Tenant
-│   │   ├── auth/login/               # Autenticação segura com timingSafeEqual e SHA-256
-│   │   ├── clients/                  # Gestão de Clientes multi-tenant por userId
-│   │   ├── contracts/                # Gestão de Contratos e Aceite Digital
-│   │   ├── cycle-evaluations/        # Avaliação de Ciclo e Formulário Público Seguro
-│   │   ├── expenses/                 # Despesas operacionais e categorização de OPEX
-│   │   ├── projects/                 # Projetos, prazos e controle de entregáveis
-│   │   └── profile/                  # Perfil do freelancer e configurações fiscais
-│   └── ...                           # Interface React 19 / Server Components Next.js 15
-├── core/
-│   └── domain/                       # Camada de Domínio Puro (Single Source of Truth)
-│       ├── entities/                 # Entidades e Value Objects de negócio
-│       ├── ports/
-│       │   └── repositories/         # Portas Abstratas de Repositório (DIP)
-│       │       ├── contract.repository.port.ts
-│       │       ├── cycle-evaluation.repository.port.ts
-│       │       ├── expense.repository.port.ts
-│       │       ├── project.repository.port.ts
-│       │       └── user-profile.repository.port.ts
-│       ├── schemas.ts                # Schemas Canônicos Zod (Contracts, Clients, Expenses)
-│       └── services/                 # Casos de Uso e Serviços de Domínio
-│           ├── contract.service.ts
-│           ├── cycle-evaluation.service.ts
-│           └── project.service.ts
-├── infrastructure/
-│   └── repositories/
-│       └── in-memory/                # Adaptadores Secundários (In-Memory Repository Adapters)
-│           ├── in-memory-contract.repository.ts
-│           ├── in-memory-cycle-evaluation.repository.ts
-│           ├── in-memory-expense.repository.ts
-│           ├── in-memory-project.repository.ts
-│           └── in-memory-user-profile.repository.ts
-├── lib/                              # Utilitários de infraestrutura (auth, db, monetary)
-├── convex/                           # Schema e mutations reativas em nuvem
-├── prisma/                           # Schema relacional PostgreSQL e migrações
-└── tests/                            # Suíte completa de testes automatizados com Vitest
+```
+D-3  │ Cortesia Preventiva   │ E-mail com incentivo de pontualidade
+D-0  │ Dia do Vencimento     │ WhatsApp + PIX dinâmico + QR Code
+D+3  │ Lembrete Assertivo    │ Aviso com recálculo de juros e multa pro-rata
+D+7  │ Notificação Formal    │ Registro de entrega antes de suspensão de serviços
 ```
 
-### Princípio da Inversão de Dependência (DIP)
+Cada disparo é guardado no `DeduplicationJournal` com hash **SHA-256**.  
+Idempotência garantida: a mesma cobrança nunca é enviada duas vezes.
 
-Nenhum serviço de domínio depende diretamente de bibliotecas de terceiros ou adaptadores de banco de dados. As dependências são injetadas explicitamente através de suas portas:
+### 3.2 Motor Tributário — Simples Nacional (Fator R)
+
+```
+Fator R = Folha Anual (+ pró-labore) / Receita Bruta Total dos últimos 12 meses
+
+Fator R ≥ 28%  →  Anexo III  (alíquota efetiva a partir de 6,00%)
+Fator R < 28%  →  Anexo V    (alíquota a partir de 15,50%)
+```
+
+O valor do DAS é retido imediatamente no **Cofre Virtual** no momento da liquidação.  
+Lucro pessoal e obrigação tributária nunca se misturam.
+
+### 3.3 PIX Dinâmico — BACEN (Resolução BCB nº 1/2020)
+
+Geração nativa de strings _Copia e Cola_ via Value Object `PixPayload` com validação de integridade por **CRC16-CCITT** polimórfico. Conformidade total com o Manual de Padrões para Iniciação do PIX.
+
+### 3.4 Aritmética Monetária Exata
 
 ```typescript
-// Exemplo: core/domain/services/contract.service.ts
-export class ContractService {
-  constructor(private readonly contractRepo: IContractRepository) {}
+// Zero erros IEEE 754 — decimal.js com ROUND_HALF_UP
+import Decimal from 'decimal.js'
+Decimal.set({ rounding: Decimal.ROUND_HALF_UP })
 
-  async createContract(data: CreateContractInput): Promise<Contract> {
-    // Regras de negócio puras, validação temporal e cálculo monetário
-    return this.contractRepo.create(contract);
-  }
-}
+const total = new Decimal('1499.99').plus('0.01') // => 1500.00 (exato)
+```
+
+Campos persistidos como `DECIMAL(12,2)` no schema PostgreSQL canônico `AxiomLancer.sql`.
+
+### 3.5 Gestão de Contratos — Aceite Digital com Não-Repúdio
+
+| Campo | Descrição |
+|-------|-----------|
+| `accepted_at` | Carimbo de data/hora UTC imutável |
+| `signer_ip` | IP de conexão do signatário |
+| `signature_hash` | SHA-256 do contrato no momento do aceite |
+| `status` | Máquina de estados: `DRAFT → ACTIVE → COMPLETED` |
+
+Contratos com status `ACTIVE` têm termos bloqueados contra adulteração.  
+Validação de borda Fail Fast via **Zod** (`start_date <= end_date`).
+
+### 3.6 Sistema de Avaliação de Ciclo (Milestone)
+
+Gatilho automático ao atingir **10 contratos concluídos** ou **30 dias** de ciclo contínuo.
+
+5 dimensões qualitativas avaliadas:
+1. Atendimento à Demanda
+2. Comunicação
+3. Apresentação de Resultados
+4. Proatividade em Reuniões
+5. Entendimento da Dor do Cliente
+
+Chave determinística `cycle_identifier` com índice `UNIQUE` previne envios duplicados.
+
+### 3.7 Previsio BI — Fluxo Preditivo (Integrado)
+
+Dashboard analítico de liquidez integrado ao ecossistema AxiomLancer:
+
+```
+Horizonte selecionável: 30 / 60 / 90 dias
+
+4 Cenários:
+  ┌─ realisticBalance          (saldo ponderado por probabilidade)
+  ├─ Cenário Realista          (ponderado por Score do Cliente)
+  ├─ Cenário Otimista          (100% pontual — valor bruto)
+  └─ Cenário Conservador       (65% de recebimento — máximo risco)
+
+Fonte de dados → GET /api/invoices  (BOLA-safe, user-scoped)
+                 GET /api/expenses  (BOLA-safe, user-scoped)
 ```
 
 ---
 
-## 4. Banco de Dados & Dupla Persistência
+## 4. Segurança & Governança (Zero Trust · Zero Secrets · BOLA-Free)
 
-O AxiomLancer adota uma estratégia moderna de **dupla persistência complementar**:
+Baseado nas diretrizes **Secure by Design** do ecossistema `agente-core`:
 
-### 4.1. Convex Cloud (Reativo em Tempo Real)
-
-* Persistência reativa para sincronização instantânea de estado na interface do usuário sem polling.
-* Tabelas estritamente tipadas em `convex/schema.ts`:
-  * `clients`: Gestão de contratantes e histórico de pagamentos.
-  * `invoices`: Faturas emitidas, status de liquidação e metadados.
-  * `billing_rules`: Configuração de réguas de cobrança autônomas.
-  * `billing_executions`: Histórico de execuções com log de entrega multicanal.
-  * `contracts`: Contratos formalizados, termos jurídicos e aceite digital imutável.
-  * `projects`: Projetos, horas alocadas e prazos de entrega.
-  * `cycle_evaluations`: Ciclos de avaliação qualitativa (10 entregas ou 30 dias).
-  * `project_feedbacks`: Feedbacks granulares recebidos por dimensão.
-
-### 4.2. Prisma ORM & PostgreSQL (Relacional & Governança Fiduciária)
-
-* Mapeamento relacional completo definido em `prisma/schema.prisma` alinhado ao esquema corporativo `AxiomLancer.sql`.
-* Campos monetários com precisão exata `Decimal(12,2)`.
-* Tabela `DeduplicationJournal` com hash SHA-256 para garantia de idempotência absoluta.
-* Chaves estrangeiras com integridade referencial estrita e deleção em cascata controlada.
-
----
-
-## 5. Segurança & Governança Técnica
-
-Seguindo as diretrizes corporativas **Secure by Design**, **Zero Trust** e **Zero Secrets**:
-
-* **Zero Secrets & Timing Attacks:** Eliminação de senhas ou segredos hardcoded no repositório. O endpoint `/api/auth/login` utiliza `crypto.timingSafeEqual` com hashes SHA-256, eliminando qualquer risco de timing attacks.
-* **Prevenção contra BOLA / IDOR:** Todos os endpoints e repositórios aplicam isolamento obrigatório por `userId` autenticado. Um usuário nunca consegue visualizar ou alterar recursos de outro locatário.
-* **JWT com Algorithm Whitelist:** Verificação estrita via `jose` configurada explicitamente com `{ algorithms: ["HS256"] }`, mitigando integralmente vulnerabilidades de downgrade ou ataques de `alg: none`.
-* **Fail Fast na Borda:** Validação profunda de esquemas com Zod na entrada de cada rota da API, rejeitando payloads malformados antes de qualquer processamento ou consulta ao banco.
-* **Safe Mode (< 12ms):** Circuito atômico para interrupção de emergência em caso de anomalia de cobrança ou comando do operador.
-
----
-
-## 6. Qualidade & Testes Automatizados
-
-O sistema conta com cobertura abrangente de testes unitários desenvolvidos com **Vitest 3.x**, cobrindo todas as invariantes de domínio, cálculos tributários e contratos de API:
-
-```text
- ✓ tests/unit/monetary.spec.ts (5 tests)          # Precisão decimal.js, formatação BRL e taxas
- ✓ tests/unit/tax-engine.spec.ts (3 tests)        # Fator R, Anexos III/V e split do DAS
- ✓ tests/unit/rules-engine.spec.ts (3 tests)      # Offsets temporais D-3 a D+7 e idempotência
- ✓ tests/unit/use-cases.spec.ts (3 tests)         # Use cases e inversão de dependência (DIP)
- ✓ tests/unit/message-template.spec.ts (13 tests) # Templates multicanal e validação Zod
- ✓ tests/unit/reputation-score.spec.ts (11 tests) # Média ponderada (decimal.js) e divisão por zero
- ✓ tests/unit/dashboard-summary.spec.ts (3 tests) # Sumarização de caixa vs. OPEX e margem real
- ✓ tests/unit/project.spec.ts (7 tests)          # Validação de datas, status e proteção LGPD
- ✓ tests/unit/contract.spec.ts (14 tests)         # Máquina de estados, aceite digital e Zero Trust
- ✓ tests/unit/cycle-evaluation.spec.ts (36 tests) # Gatilhos 10 projetos/30 dias, 5 dimensões e tokens
-
-   Test Files  10 passed (10)
-        Tests  98 passed (98)
-   Duration  1.29s
+```
+┌─────────────────────────────────────────────────────────┐
+│                   CAMADAS DE SEGURANÇA                  │
+├─────────────────────────────────────────────────────────┤
+│  BORDA      │ Zod schema validation em todas as rotas   │
+│  AUTH       │ JWT HS256 + jose algorithm whitelist       │
+│  ISOLAMENTO │ userId filter em 100% dos endpoints       │
+│  TIMING     │ crypto.timingSafeEqual (anti timing-attack)│
+│  SEGREDOS   │ Zero Secrets — .env.example como SSoT     │
+│  EMERGÊNCIA │ Safe Mode < 12ms — flag atômica no Convex │
+└─────────────────────────────────────────────────────────┘
 ```
 
-Para rodar a suíte completa de testes:
+| Vetor de Ataque | Mitigação Implementada |
+|-----------------|------------------------|
+| **BOLA / IDOR** | `session.userId` obrigatório em todos os repositórios |
+| **Timing Attack** | `crypto.timingSafeEqual` com hashes SHA-256 no login |
+| **JWT Algorithm Confusion** | `jose` com `{ algorithms: ['HS256'] }` explícito |
+| **Payload Malformado** | Zod `safeParse()` na borda — rejeição antes do banco |
+| **Hardcoded Secrets** | `.env.example` + `.gitignore` — zero secrets no repo |
+| **Cobrança Duplicada** | `DeduplicationJournal` SHA-256 + idempotência estrita |
+
+---
+
+## 5. Qualidade & Testes Automatizados
+
+**Vitest 3.x** · 10 suites · **98 testes** · cobertura de todas as invariantes de domínio
+
+```
+✓ tests/unit/monetary.spec.ts           (5)   Precisão decimal.js, BRL, taxas
+✓ tests/unit/tax-engine.spec.ts         (3)   Fator R, Anexos III/V, split DAS
+✓ tests/unit/rules-engine.spec.ts       (3)   Offsets D-3 → D+7, idempotência
+✓ tests/unit/use-cases.spec.ts          (3)   Use cases e DIP (injeção explícita)
+✓ tests/unit/message-template.spec.ts  (13)   Templates multicanal + Zod
+✓ tests/unit/reputation-score.spec.ts  (11)   Média ponderada e divisão por zero
+✓ tests/unit/dashboard-summary.spec.ts  (3)   Caixa vs. OPEX e margem real
+✓ tests/unit/project.spec.ts            (7)   Datas, status e proteção LGPD
+✓ tests/unit/contract.spec.ts          (14)   Máquina de estados e Zero Trust
+✓ tests/unit/cycle-evaluation.spec.ts  (36)   Gatilhos, 5 dimensões e tokens
+
+  Test Suites   10 passed (10)
+  Tests         98 passed (98)
+  Duration      1.29s
+```
 
 ```bash
-pnpm test
+pnpm test                  # Roda toda a suíte
+pnpm exec tsc --noEmit     # Validação de tipos TypeScript
 ```
 
 ---
 
-## 7. Guia de Execução & Deploy
+## 6. Guia de Execução
 
 ### Pré-requisitos
 
-* **Node.js:** Versão 20+ LTS (recomendado Node 20 ou 22)
-* **PNPM:** Versão 10+ ou 11+ (`npm install -g pnpm`)
-* **Conta Convex:** (Opcional para persistência remota na nuvem Convex)
+| Dependência | Versão Mínima |
+|-------------|---------------|
+| Node.js | 20 LTS+ |
+| PNPM | 10+ |
+| Conta Convex | Opcional (persistência cloud) |
 
-### Passo a Passo
+### Setup
 
 ```bash
-# 1. Entrar no diretório do projeto
-cd c:\Dev\AxiomLancer
+# 1. Clonar e entrar no projeto
+cd C:\Dev\AxiomLancer
 
-# 2. Instalar as dependências do projeto
+# 2. Instalar dependências
 pnpm install
 
-# 3. Configurar as variáveis de ambiente
+# 3. Configurar variáveis de ambiente (Zero Secrets)
 cp .env.example .env.local
+# Editar .env.local com suas credenciais reais
 
-# 4. Executar a suíte de testes unitários
-pnpm test
-
-# 5. Executar a validação de tipos TypeScript
+# 4. Validar tipos TypeScript
 pnpm exec tsc --noEmit
 
-# 6. Iniciar o servidor de desenvolvimento
+# 5. Rodar suíte de testes
+pnpm test
+
+# 6. Iniciar em desenvolvimento
 pnpm dev
-
-# 7. Gerar build otimizado de produção
-pnpm build
-
-# 8. Iniciar o servidor em produção
-pnpm start
 ```
 
-### Variáveis de Ambiente Necessárias (`.env.local`)
+### Variáveis de Ambiente (`.env.local`)
 
 ```env
-# Segurança e Sessão
-JWT_SECRET=seu-jwt-secret-com-pelo-menos-32-caracteres-seguros
+# ── Segurança ──────────────────────────────────────────
+JWT_SECRET=<mínimo-32-chars-gerado-com-openssl-rand>
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Credenciais Administrativas Seguras (Zero Secrets)
+# ── Administrador (Fail Fast na boot — obrigatório) ───
 ADMIN_EMAIL=admin@axiomlancer.com
-ADMIN_PASSWORD=SuaSenhaForteAqui123!
+ADMIN_PASSWORD=<senha-forte>
+ADMIN_NAME=Administrador
+ADMIN_USER_ID=<uuid-único>
 
-# Conexão Convex Cloud
-CONVEX_DEPLOYMENT=dev:trustworthy-otter-486
-NEXT_PUBLIC_CONVEX_URL=https://trustworthy-otter-486.convex.cloud
-CONVEX_DEPLOY_KEY=dev:trustworthy-otter-486|seu-token-de-deploy-convex
+# ── Convex Cloud ───────────────────────────────────────
+CONVEX_DEPLOYMENT=dev:<seu-deployment>
+NEXT_PUBLIC_CONVEX_URL=https://<seu-deployment>.convex.cloud
+CONVEX_DEPLOY_KEY=dev:<seu-deployment>|<token>
 ```
 
-### Documentação de APIs & Governança de Contratos
+> ⚠️ **Zero Secrets:** Nenhuma dessas variáveis pode aparecer hardcoded no código.  
+> O servidor rejeita o boot com `BootError` se qualquer variável crítica estiver ausente.
 
-* **Swagger OpenAPI 3.0:** Arquivo canônico em `docs/api/swagger.json` documentando todos os 15 endpoints REST da aplicação.
-* **Postman Collection v2.1:** Coleção completa para testes e automação em `docs/api/postman_collection.json`.
-* **API Versioning:** Suporte a rewrites transparentes de `/api/v1/:path*` para `/api/:path*` configurado nativamente no `next.config.mjs`.
+### Endpoints da API
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/auth/login` | Autenticação JWT (timingSafeEqual) |
+| `GET/POST` | `/api/invoices` | Faturas user-scoped (BOLA-safe) |
+| `POST` | `/api/invoices/[id]/recover` | Recuperação de fatura (ownership check) |
+| `GET/POST` | `/api/contracts` | Contratos + máquina de estados |
+| `POST` | `/api/contracts/[id]/accept` | Aceite digital com não-repúdio |
+| `GET/POST` | `/api/projects` | Projetos user-scoped |
+| `GET/POST` | `/api/clients` | Clientes via InMemoryClientRepository |
+| `GET/POST` | `/api/expenses` | OPEX via InMemoryExpenseRepository |
+| `GET` | `/api/dashboard/summary` | DRE gerencial + saldo de caixa |
+| `GET` | `/api/predictive-cashflow` | Previsão 7–90 dias (Zod-validated) |
+| `GET/POST` | `/api/cycle-evaluations` | Avaliações de ciclo |
+| `POST` | `/api/cycle-evaluations/trigger` | Disparo manual do gatilho |
+| `GET` | `/api/billing-rules` | Régua D-3 → D+7 user-scoped |
+| `GET/POST` | `/api/feedbacks` | Feedbacks com ownership check |
+| `GET` | `/api/dre` | DRE filtrado por userId |
+
+Documentação completa: [`docs/api/swagger.json`](./docs/api/swagger.json) · [`docs/api/postman_collection.json`](./docs/api/postman_collection.json)
+
+> **API Versioning:** Rewrites transparentes de `/api/v1/:path*` → `/api/:path*` em `next.config.mjs` para compatibilidade com clientes externos.
 
 ---
 
-## 8. Governança e Autoria
+## 7. Roadmap
 
-* **Arquitetura & Engenharia:** Desenvolvido pelo time **7Keys**.
-* **Governança Técnica:** Projetado sob as diretrizes constitucionais de **Henrique Monteiro Cardoso** (`@agente-core`).
-* **Design Standards:** Interface desenvolvida respeitando a **Grade de 8px**, contraste perceptual **APCA**, layouts em **Bento Grid** e estética **Liquid Glass**.
-* **Licença:** Proprietário — 7Keys Studio. Todos os direitos reservados.
+```
+✅ CONCLUÍDO
+   ├── Modelo de dados (Convex + PostgreSQL schema)
+   ├── Integração PIX dinâmico (CRC16-CCITT)
+   ├── Clean Architecture DIP (100% injeção explícita)
+   ├── Segurança BOLA-free em todos os endpoints
+   ├── Zero Secrets (.env.example + boot validation)
+   └── 98 testes automatizados passando
+
+🔄 EM PROGRESSO
+   ├── Régua multicanal WhatsApp Business API
+   └── Previsio BI — painel integrado ao frontend
+
+📋 PLANEJADO
+   ├── Closed Beta para agências parceiras
+   ├── Integração Previsio BI via HTTP Connector
+   └── Export de relatórios PDF/Excel
+```
+
+---
+
+## 8. Stack Tecnológica
+
+| Camada | Tecnologia | Padrão |
+|--------|------------|--------|
+| **Frontend** | Next.js 15 App Router · React 19 · TypeScript | RSC sem `"use client"` por padrão |
+| **UI** | Tailwind CSS v4 · Geist Font · Grade 8px | APCA · Bento Grid · Dark Mode Tri-Layer |
+| **Backend** | Next.js Route Handlers · Zod · jose | Hexagonal Architecture · Fail Fast |
+| **Persistência** | Convex (serverless) · PostgreSQL schema | PACELC Theorem · Idempotência SHA-256 |
+| **Financeiro** | decimal.js · PIX BACEN | ROUND_HALF_UP · CRC16-CCITT |
+| **Testes** | Vitest 3.x | 98 testes · DIP-compliant |
+| **DevOps** | PNPM · GitHub Actions · Vercel | CI/CD GitOps · Zero Secrets |
+
+---
+
+## 9. Governança & Autoria
+
+```
+Arquitetura & Engenharia     7Keys Studio
+Governança Técnica           Henrique Monteiro Cardoso (@agente-core)
+Constituição do Projeto      AGENTS.md · agente-core v2026
+Design Standards             Grade 8px · APCA · Liquid Glass · Bento Grid
+Vinculação BI                C:\Dev\PrevisioBI (Previsio BI: Fluxo Preditivo)
+Licença                      Proprietário — 7Keys Studio. Todos os direitos reservados.
+```
+
+---
+
+<div align="center">
+
+*AxiomLancer · Motor de Execução Financeira Autônoma*  
+*Governado por Clean Architecture · Zero Trust · agente-core v2026*
+
+</div>
