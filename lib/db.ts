@@ -1,4 +1,4 @@
-import {
+﻿import {
   BillingRule,
   Client,
   DeduplicationJournal,
@@ -698,5 +698,29 @@ export class Database {
   public static createExpense(expense: import('../core/domain/types').Expense): import('../core/domain/types').Expense {
     globalState.expenses.unshift({ ...expense });
     return { ...expense };
+  }
+
+  public static listMilestones(contractId?: string): MilestoneEscrow[] {
+    if (contractId) {
+      return globalState.milestones.filter((m) => m.contract_id === contractId);
+    }
+    return globalState.milestones;
+  }
+
+  public static findMilestone(id: string): MilestoneEscrow | null {
+    const item = globalState.milestones.find((m) => m.id === id);
+    return item ? { ...item } : null;
+  }
+
+  public static createMilestone(milestone: MilestoneEscrow): MilestoneEscrow {
+    globalState.milestones.unshift({ ...milestone });
+    return { ...milestone };
+  }
+
+  public static updateMilestone(id: string, data: Partial<MilestoneEscrow>): MilestoneEscrow | null {
+    const index = globalState.milestones.findIndex((m) => m.id === id);
+    if (index === -1) return null;
+    globalState.milestones[index] = { ...globalState.milestones[index], ...data };
+    return { ...globalState.milestones[index] };
   }
 }

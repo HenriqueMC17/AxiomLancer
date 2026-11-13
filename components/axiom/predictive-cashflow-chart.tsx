@@ -41,8 +41,8 @@ export function PredictiveCashflowChart() {
     fetchCashflow(horizon);
   }, [horizon]);
 
-  const summary = data?.projection?.summary;
-  const points = data?.projection?.points || [];
+  const summary = data?.projection?.summary ?? data?.summary;
+  const points = data?.projection?.points ?? data?.points ?? [];
 
   return (
     <Card className="border-border bg-card/50 backdrop-blur-sm">
