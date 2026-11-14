@@ -26,7 +26,7 @@ export function InvoiceManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Modal de CriaÃ§Ã£o de Fatura
+  // Modal de Criação de Fatura
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState("");
   const [invoiceNumber, setInvoiceNumber] = useState(`FAT-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`);
@@ -79,8 +79,8 @@ export function InvoiceManager() {
 
       const data = await res.json();
       if (data.success) {
-        toast.success("Fatura emitida com Split TributÃ¡rio!", {
-          description: `Valor Bruto: ${MonetaryService.formatBRL(data.tax_provision.gross_value)} | RetenÃ§Ã£o Cofre: ${MonetaryService.formatBRL(data.tax_provision.virtual_safe_deposit)} (Simples Nacional 6%)`,
+        toast.success("Fatura emitida com Split Tributário!", {
+          description: `Valor Bruto: ${MonetaryService.formatBRL(data.tax_provision.gross_value)} | Retenção Cofre: ${MonetaryService.formatBRL(data.tax_provision.virtual_safe_deposit)} (Simples Nacional 6%)`,
         });
         setOpenCreateDialog(false);
         fetchInvoices();
@@ -89,7 +89,7 @@ export function InvoiceManager() {
         toast.error("Falha ao emitir fatura", { description: JSON.stringify(data.error) });
       }
     } catch (err: unknown) {
-      toast.error("Erro na requisiÃ§Ã£o", { description: (err as Error).message });
+      toast.error("Erro na requisição", { description: (err as Error).message });
     } finally {
       setIsCreating(false);
     }
@@ -112,14 +112,14 @@ export function InvoiceManager() {
         fetchInvoices();
       }
     } catch (err: unknown) {
-      toast.error("Erro ao registrar recuperaÃ§Ã£o", { description: (err as Error).message });
+      toast.error("Erro ao registrar recuperação", { description: (err as Error).message });
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success("Chave PIX Copia e Cola copiada para a Ã¡rea de transferÃªncia!");
+    toast.success("Chave PIX Copia e Cola copiada para a área de transferência!");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -158,7 +158,7 @@ export function InvoiceManager() {
         ["Aliquota Efetiva", inv.tax_rate.toFixed(2) + "%"],
         ["Imposto Provisionado", "R$ " + inv.tax_provisioned.toFixed(2)],
         ["Valor Liquido", "R$ " + inv.net_value.toFixed(2)],
-        ["Chave PIX", inv.pix_key ?? "â€”"],
+        ["Chave PIX", inv.pix_key ?? "—"],
         ["Criado em", new Date(inv.created_at).toLocaleDateString("pt-BR")],
       ],
       headStyles: { fillColor: [9, 9, 11] as [number, number, number], textColor: [16, 185, 129] as [number, number, number] },
@@ -183,7 +183,7 @@ export function InvoiceManager() {
     toast.success("PDF exportado com sucesso!", { description: "fatura-" + inv.invoice_number + ".pdf" });
   };
 
-  // Preview do Split de Imposto em tempo real no formulÃ¡rio
+  // Preview do Split de Imposto em tempo real no formulário
   const previewSplit = MonetaryService.calculateTaxSplit(grossValue || 0, 6.0);
 
   return (
@@ -193,13 +193,13 @@ export function InvoiceManager() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-xl font-bold tracking-tight">GestÃ£o de Faturas & Split de Impostos</CardTitle>
+                <CardTitle className="text-xl font-bold tracking-tight">Gestão de Faturas & Split de Impostos</CardTitle>
                 <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 text-xs">
                   Cofre Virtual Ativo
                 </Badge>
               </div>
               <CardDescription className="text-sm mt-1">
-                Faturamento autÃ´nomo com provisÃ£o tributÃ¡ria instantÃ¢nea (Simples Nacional) e liquidaÃ§Ã£o via PIX
+                Faturamento autônomo com provisão tributária instantânea (Simples Nacional) e liquidação via PIX
               </CardDescription>
             </div>
 
@@ -212,9 +212,9 @@ export function InvoiceManager() {
               </DialogTrigger>
               <DialogContent className="sm:max-w-[480px]">
                 <DialogHeader>
-                  <DialogTitle>Nova Fatura com Split TributÃ¡rio</DialogTitle>
+                  <DialogTitle>Nova Fatura com Split Tributário</DialogTitle>
                   <DialogDescription>
-                    O sistema isolarÃ¡ automaticamente o valor do Simples Nacional em cofre virtual.
+                    O sistema isolará automaticamente o valor do Simples Nacional em cofre virtual.
                   </DialogDescription>
                 </DialogHeader>
 
@@ -258,7 +258,7 @@ export function InvoiceManager() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label htmlFor="gross">Valor Bruto do ServiÃ§o (R$)</Label>
+                    <Label htmlFor="gross">Valor Bruto do Serviço (R$)</Label>
                     <Input
                       id="gross"
                       type="number"
@@ -269,19 +269,19 @@ export function InvoiceManager() {
                     />
                   </div>
 
-                  {/* VisualizaÃ§Ã£o do Split TributÃ¡rio em Tempo Real */}
+                  {/* Visualização do Split Tributário em Tempo Real */}
                   <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3 space-y-1.5 text-xs font-mono">
                     <span className="font-bold text-emerald-400 block font-sans">
-                      Split TributÃ¡rio AutomÃ¡tico (Simples Nacional 6.00%):
+                      Split Tributário Automático (Simples Nacional 6.00%):
                     </span>
                     <div className="flex justify-between text-muted-foreground">
-                      <span>ProvisÃ£o Cofre de Impostos:</span>
+                      <span>Provisão Cofre de Impostos:</span>
                       <span className="text-amber-400 font-bold">
                         {MonetaryService.formatBRL(previewSplit.taxProvisioned)}
                       </span>
                     </div>
                     <div className="flex justify-between text-muted-foreground">
-                      <span>Valor LÃ­quido Real (Freelancer):</span>
+                      <span>Valor Líquido Real (Freelancer):</span>
                       <span className="text-emerald-400 font-bold">
                         {MonetaryService.formatBRL(previewSplit.netValue)}
                       </span>
@@ -289,7 +289,7 @@ export function InvoiceManager() {
                   </div>
 
                   <Button type="submit" disabled={isCreating} className="w-full bg-emerald-600 hover:bg-emerald-700 font-semibold">
-                    {isCreating ? "Processando..." : "Emitir e Gerar PIX DinÃ¢mico"}
+                    {isCreating ? "Processando..." : "Emitir e Gerar PIX Dinâmico"}
                   </Button>
                 </form>
               </DialogContent>
@@ -307,9 +307,9 @@ export function InvoiceManager() {
                   <th className="p-3.5">Vencimento</th>
                   <th className="p-3.5">Valor Bruto</th>
                   <th className="p-3.5">Cofre Imposto (6%)</th>
-                  <th className="p-3.5">LÃ­quido Real</th>
+                  <th className="p-3.5">Líquido Real</th>
                   <th className="p-3.5">Status</th>
-                  <th className="p-3.5 text-right">AÃ§Ãµes</th>
+                  <th className="p-3.5 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -369,7 +369,7 @@ export function InvoiceManager() {
                             size="sm"
                             className="h-7 text-xs bg-cyan-600 hover:bg-cyan-700 text-white font-semibold"
                             onClick={() => handleRecoverInvoice(inv.id)}
-                            title="Simula quitaÃ§Ã£o via motor e cobra Take Rate de 5%"
+                            title="Simula quitação via motor e cobra Take Rate de 5%"
                           >
                             <Sparkles className="h-3.5 w-3.5 mr-1" />
                             Recuperar (5% Take Rate)
@@ -401,7 +401,7 @@ export function InvoiceManager() {
             <DialogHeader>
               <DialogTitle className="flex items-center justify-center gap-2">
                 <QrCode className="h-5 w-5 text-emerald-400" />
-                PIX DinÃ¢mico: {activePixInvoice.invoice_number}
+                PIX Dinâmico: {activePixInvoice.invoice_number}
               </DialogTitle>
               <DialogDescription>
                 Fatura de {MonetaryService.formatBRL(activePixInvoice.gross_value)} emitida para {clients.find(c => c.id === activePixInvoice.client_id)?.legal_name ?? "Cliente"}
@@ -412,7 +412,7 @@ export function InvoiceManager() {
               {/* QR Code Canvas Visual Representation */}
               <div className="w-48 h-48 bg-zinc-900 rounded-lg flex flex-col items-center justify-center text-white p-3 space-y-2">
                 <QrCode className="w-32 h-32 text-emerald-400" />
-                <span className="text-[10px] font-mono text-zinc-400">PIX BACEN DINÃ‚MICO</span>
+                <span className="text-[10px] font-mono text-zinc-400">PIX BACEN DINÂMICO</span>
               </div>
             </div>
 

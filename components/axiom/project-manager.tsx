@@ -251,9 +251,9 @@ export function ProjectManager() {
       ) : projects.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-900/20">
           <FolderGit2 className="h-10 w-10 text-zinc-600" />
-          <p className="text-zinc-300 font-medium">Nenhum projeto cadastrado no portfÃ³lio</p>
+          <p className="text-zinc-300 font-medium">Nenhum projeto cadastrado no portfólio</p>
           <p className="text-zinc-500 text-xs max-w-sm">
-            Adicione seus projetos entregues ou em andamento para exibir aos clientes com garantia LGPD e reputaÃ§Ã£o comprovada.
+            Adicione seus projetos entregues ou em andamento para exibir aos clientes com garantia LGPD e reputação comprovada.
           </p>
           <Button onClick={openCreate} variant="outline" className="border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10">
             Cadastrar Primeiro Projeto
@@ -394,7 +394,7 @@ export function ProjectManager() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-white">
               <Sparkles className="h-4 w-4 text-emerald-400" />
-              {editingProject ? "Editar Projeto" : "Adicionar Projeto ao PortfÃ³lio"}
+              {editingProject ? "Editar Projeto" : "Adicionar Projeto ao Portfólio"}
             </DialogTitle>
           </DialogHeader>
 
@@ -437,7 +437,7 @@ export function ProjectManager() {
             {/* Descricao */}
             <div className="space-y-1.5">
               <Label htmlFor="proj_desc" className="text-xs text-zinc-300">
-                Descricao TÃ©cnica do Desafio &amp; Entregas
+                Descricao Técnica do Desafio &amp; Entregas
               </Label>
               <Textarea
                 id="proj_desc"
@@ -455,7 +455,7 @@ export function ProjectManager() {
                   Projeto em Desenvolvimento?
                 </Label>
                 <p className="text-[11px] text-zinc-400">
-                  Desabilita a Data de TÃ©rmino e marca o projeto como &quot;Em curso&quot;.
+                  Desabilita a Data de Término e marca o projeto como &quot;Em curso&quot;.
                 </p>
               </div>
               <Switch
@@ -475,7 +475,7 @@ export function ProjectManager() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="proj_start" className="text-xs text-zinc-300">
-                  Data de InÃ­cio <span className="text-rose-400">*</span>
+                  Data de Início <span className="text-rose-400">*</span>
                 </Label>
                 <Input
                   id="proj_start"
@@ -494,7 +494,7 @@ export function ProjectManager() {
                     htmlFor="proj_end"
                     className={`text-xs ${form.is_in_development ? "text-zinc-500" : "text-zinc-300"}`}
                   >
-                    Data de TÃ©rmino
+                    Data de Término
                   </Label>
                   {form.is_in_development && (
                     <span className="text-[10px] text-cyan-400 font-mono">Bloqueado</span>
@@ -528,10 +528,10 @@ export function ProjectManager() {
             <div className="flex items-center justify-between p-3 rounded-lg border border-zinc-700/80 bg-zinc-800/40">
               <div className="space-y-0.5">
                 <Label htmlFor="toggle_lgpd" className="text-xs font-semibold text-white cursor-pointer">
-                  AutorizaÃ§Ã£o LGPD da Empresa
+                  Autorização LGPD da Empresa
                 </Label>
                 <p className="text-[11px] text-zinc-400">
-                  Se desativado, o nome do cliente serÃ¡ exibido como &quot;Confidencial&quot;.
+                  Se desativado, o nome do cliente será exibido como &quot;Confidencial&quot;.
                 </p>
               </div>
               <Switch
@@ -552,7 +552,7 @@ export function ProjectManager() {
                 disabled={formLoading}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
               >
-                {formLoading ? "Salvando..." : editingProject ? "Salvar AlteraÃ§Ãµes" : "Cadastrar Projeto"}
+                {formLoading ? "Salvando..." : editingProject ? "Salvar Alterações" : "Cadastrar Projeto"}
               </Button>
             </DialogFooter>
           </form>
@@ -563,7 +563,7 @@ export function ProjectManager() {
       <AlertDialog open={deleteTarget !== null} onOpenChange={(v) => { if (!v) setDeleteTarget(null); }}>
         <AlertDialogContent className="bg-zinc-900 border border-zinc-700 text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Remover Projeto do PortfÃ³lio?</AlertDialogTitle>
+            <AlertDialogTitle className="text-white">Remover Projeto do Portfólio?</AlertDialogTitle>
             <AlertDialogDescription className="text-zinc-400">
               Esta acao e irreversivel. O projeto &quot;{deleteTarget?.name}&quot; sera removido do seu perfil publico.
             </AlertDialogDescription>
