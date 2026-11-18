@@ -378,7 +378,7 @@ export function ProjectManager() {
                     </div>
                   ) : (
                     <div className="text-[10px] text-zinc-500 italic">
-                      Aguardando avaliacao da empresa contratante ao termino do ciclo.
+                      Aguardando avaliação da empresa contratante ao término do ciclo.
                     </div>
                   )}
                 </div>
@@ -437,7 +437,7 @@ export function ProjectManager() {
             {/* Descricao */}
             <div className="space-y-1.5">
               <Label htmlFor="proj_desc" className="text-xs text-zinc-300">
-                Descricao Técnica do Desafio &amp; Entregas
+                Descrição Técnica do Desafio &amp; Entregas
               </Label>
               <Textarea
                 id="proj_desc"

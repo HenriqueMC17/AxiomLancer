@@ -172,7 +172,7 @@ export function ExpenseManager() {
             <TrendingDown className="h-5 w-5 text-rose-400" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Gestao de Despesas</h2>
+            <h2 className="text-base font-bold text-white">Gestão de Despesas</h2>
             <p className="text-xs text-zinc-500">{expenses.length} despesas registradas</p>
           </div>
         </div>
@@ -194,7 +194,7 @@ export function ExpenseManager() {
               </DialogHeader>
               <div className="space-y-4 pt-2">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Descricao</Label>
+                  <Label className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">Descrição</Label>
                   <Input value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     placeholder="Ex: Servidor AWS EC2" className="bg-zinc-800/60 border-zinc-700 text-white placeholder:text-zinc-600 focus-visible:border-emerald-500 h-10 text-sm" />
                 </div>

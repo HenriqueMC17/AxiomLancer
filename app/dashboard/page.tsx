@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -52,16 +52,16 @@ const CycleEvaluationsPanel = dynamic(
 const TABS = [
   { value: "profile",   label: "Perfil",        icon: UserCheck },
   { value: "contracts", label: "Contratos",     icon: FileText },
-  { value: "cashflow",  label: "Previsao BI",   icon: TrendingUp },
-  { value: "engine",    label: "Motor Cobranca", icon: Zap },
+  { value: "cashflow",  label: "Previsão BI",   icon: TrendingUp },
+  { value: "engine",    label: "Motor Cobrança", icon: Zap },
   { value: "invoices",  label: "Faturas & PIX", icon: Receipt },
   { value: "clients",   label: "Clientes",      icon: Users },
   { value: "expenses",  label: "Despesas",      icon: Wallet },
-  { value: "pricing",   label: "Precificacao",  icon: Calculator },
-  { value: "dre",       label: "DRE Contabil",  icon: FileSpreadsheet },
+  { value: "pricing",   label: "Precificação",  icon: Calculator },
+  { value: "dre",       label: "DRE Contábil",  icon: FileSpreadsheet },
   { value: "escrow",    label: "Smart Escrows", icon: Layers },
   { value: "templates", label: "Templates",     icon: MessageSquare },
-  { value: "portfolio", label: "Portfolio",     icon: FolderGit2 },
+  { value: "portfolio", label: "Portfólio",     icon: FolderGit2 },
   { value: "cycles",    label: "Ciclos",       icon: Star },
 ] as const;
 
@@ -75,7 +75,7 @@ export default function DashboardPage() {
   async function handleLogout() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      toast.success("Sessao encerrada");
+      toast.success("Sessão encerrada");
       router.push("/login");
       router.refresh();
     } catch {
@@ -84,10 +84,10 @@ export default function DashboardPage() {
   }
 
   const kpis = [
-    { label: "Saldo Projetado (30d)", value: MonetaryService.formatBRL(28840.0), sub: "+12.4% vs. mes anterior", icon: TrendingUp, color: "text-emerald-400" },
+    { label: "Saldo Projetado (30d)", value: MonetaryService.formatBRL(28840.0), sub: "+12.4% vs. mês anterior", icon: TrendingUp, color: "text-emerald-400" },
     { label: "Faturas em Aberto",     value: MonetaryService.formatBRL(22300.0), sub: "3 faturas pendentes",        icon: Receipt,    color: "text-amber-400" },
-    { label: "Recuperado pelo Motor", value: MonetaryService.formatBRL(3800.0),  sub: "Comissao retida: R$190 (5%)", icon: Zap,       color: "text-cyan-400" },
-    { label: "Horas Salvas/Semana",   value: "15h",                              sub: "Automacao de cobranca ativa",  icon: Clock,    color: "text-emerald-400" },
+    { label: "Recuperado pelo Motor", value: MonetaryService.formatBRL(3800.0),  sub: "Comissão retida: R\$190 (5%)", icon: Zap,       color: "text-cyan-400" },
+    { label: "Horas Salvas/Semana",   value: "15h",                              sub: "Automação de cobrança ativa",  icon: Clock,    color: "text-emerald-400" },
   ];
 
   return (
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                 <span className="text-zinc-500 text-xs">por</span>
                 <Badge className="bg-zinc-800 text-zinc-300 hover:bg-zinc-700 text-[10px] font-mono font-bold tracking-wider">7Keys</Badge>
               </div>
-              <p className="text-[11px] text-zinc-400 font-medium">Motor de Execucao Financeira Autonoma &amp; Cobranca Preditiva</p>
+              <p className="text-[11px] text-zinc-400 font-medium">Motor de Execução Financeira Autônoma &amp; Cobrança Preditiva</p>
             </motion.div>
           </div>
           <div className="flex items-center gap-3">
@@ -129,8 +129,8 @@ export default function DashboardPage() {
               className="rounded-xl border border-rose-500/50 bg-rose-950/30 p-4 text-sm text-rose-300 flex items-center gap-4">
               <ShieldAlert className="h-6 w-6 text-rose-400 shrink-0" />
               <div>
-                <p className="font-bold text-white text-sm">SAFE MODE ATIVADO: Todas as cobrancas estao congeladas</p>
-                <p className="text-xs text-rose-200">Nenhuma mensagem sera disparada ate a desativacao da trava de panico.</p>
+                <p className="font-bold text-white text-sm">SAFE MODE ATIVADO: Todas as cobranças estão congeladas</p>
+                <p className="text-xs text-rose-200">Nenhuma mensagem será disparada até a desativação da trava de pânico.</p>
               </div>
             </motion.div>
           )}
@@ -185,7 +185,7 @@ export default function DashboardPage() {
       </main>
 
       <footer className="border-t border-zinc-800/80 bg-zinc-950 py-4 text-center text-xs text-zinc-500 font-mono">
-        AxiomLancer SaaS &bull; Desenvolvido pela equipe <strong className="text-zinc-300">7Keys</strong> &bull; Clean Architecture &amp; DDD com precisao decimal.js
+        AxiomLancer SaaS &bull; Desenvolvido pela equipe <strong className="text-zinc-300">7Keys</strong> &bull; Clean Architecture &amp; DDD com precisão decimal.js
       </footer>
     </div>
   );

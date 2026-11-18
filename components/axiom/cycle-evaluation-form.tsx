@@ -38,7 +38,7 @@ function StarRating({
 }) {
   const [hovered, setHovered] = useState(0);
   return (
-    <div className="flex gap-1" role="group" aria-label="Avaliacao de 1 a 5">
+    <div className="flex gap-1" role="group" aria-label="Avaliação de 1 a 5">
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           key={star}
@@ -105,7 +105,7 @@ export function CycleEvaluationForm({
       });
       const json = await res.json() as { success: boolean; error?: { message: string } };
       if (!res.ok || !json.success) {
-        throw new Error(json.error?.message ?? "Erro ao enviar avaliacao.");
+        throw new Error(json.error?.message ?? "Erro ao enviar avaliação.");
       }
       setSubmitted(true);
     } catch (err) {
@@ -121,7 +121,7 @@ export function CycleEvaluationForm({
         <CheckCircle className="h-16 w-16 text-emerald-500" />
         <h2 className="text-2xl font-bold text-emerald-800">Obrigado pelo seu feedback!</h2>
         <p className="max-w-md text-emerald-700">
-          Sua avaliacao foi registrada com sucesso. Ela ajudara o freelancer a melhorar continuamente.
+          Sua avaliação foi registrada com sucesso. Ela ajudará o freelancer a melhorar continuamente.
         </p>
         <p className="text-xs text-emerald-500">Ciclo: {cycleIdentifier}</p>
       </div>
@@ -204,7 +204,7 @@ export function CycleEvaluationForm({
         {submitting ? (
           <>
             <Loader2 size={18} className="animate-spin" />
-            Enviando avaliacao...
+            Enviando avaliação...
           </>
         ) : (
           "Enviar Avaliacao"

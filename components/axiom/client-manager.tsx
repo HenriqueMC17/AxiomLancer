@@ -106,7 +106,7 @@ function ClientForm({ form, setForm }: ClientFormProps) {
       </div>
       <div className="space-y-1.5">
         <Label className="text-xs text-zinc-400 font-semibold uppercase tracking-wider">
-          Tom de Cobranca
+          Tom de Cobrança
         </Label>
         <Select
           value={form.tone_of_voice}
@@ -218,7 +218,7 @@ export function ClientManager() {
       const data = await res.json();
       if (!res.ok) { toast.error("Erro ao alterar status"); return; }
       setClients((prev) => prev.map((c) => (c.id === client.id ? data.client : c)));
-      toast.success(data.client.billing_paused ? "Cobranca pausada para este cliente." : "Cobranca reativada!");
+      toast.success(data.client.billing_paused ? "Cobrança pausada para este cliente." : "Cobrança reativada!");
     } catch {
       toast.error("Erro de conexao");
     }
@@ -255,7 +255,7 @@ export function ClientManager() {
             <Users className="h-5 w-5 text-blue-400" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white">Gestao de Clientes</h2>
+            <h2 className="text-base font-bold text-white">Gestão de Clientes</h2>
             <p className="text-xs text-zinc-500">{clients.length} clientes cadastrados</p>
           </div>
         </div>
@@ -386,7 +386,7 @@ export function ClientManager() {
 
                     {client.billing_paused && (
                       <Badge className="w-full justify-center text-[10px] bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                        Cobranca pausada
+                        Cobrança pausada
                       </Badge>
                     )}
 

@@ -73,7 +73,7 @@ export function RatingStars({
     <div
       className={`inline-flex items-center ${cfg.gapClass} ${cfg.containerHeight} select-none ${className}`}
       role="img"
-      aria-label={`Avaliacao: ${clampedScore.toFixed(2)} de ${maxScore} estrelas`}
+      aria-label={`Avaliação: ${clampedScore.toFixed(2)} de ${maxScore} estrelas`}
       style={{ contain: "layout size style" }} // Reserva estrutural rigorosa para Zero CLS
     >
       {/* Container das 5 estrelas */}
@@ -122,7 +122,7 @@ export function RatingStars({
 
       {typeof reviewsCount === "number" && (
         <span className="text-[11px] text-zinc-500 font-medium ml-1 shrink-0">
-          ({reviewsCount} {reviewsCount === 1 ? "avaliacao" : "avaliacoes"})
+          ({reviewsCount} {reviewsCount === 1 ? "avaliação" : "avaliações"})
         </span>
       )}
     </div>

@@ -507,7 +507,7 @@ export function MessageTemplateManager() {
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight">Templates de Mensagem</h2>
           <p className="text-sm text-zinc-400 mt-0.5">
-            Personalize o tom de voz das suas cobrancas por canal e situacao
+            Personalize o tom de voz das suas cobranças por canal e situação
           </p>
         </div>
         <Button
@@ -564,7 +564,7 @@ export function MessageTemplateManager() {
           <p className="text-zinc-400 font-medium">Nenhum template encontrado</p>
           <p className="text-zinc-600 text-sm max-w-xs">
             {filterChannel === "ALL"
-              ? "Crie seu primeiro template para personalizar suas mensagens de cobranca."
+              ? "Crie seu primeiro template para personalizar suas mensagens de cobrança."
               : `Nenhum template para o canal ${filterChannel}.`}
           </p>
           {filterChannel === "ALL" && (

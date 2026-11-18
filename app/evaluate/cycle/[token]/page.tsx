@@ -42,14 +42,14 @@ export default async function CycleEvaluationPage({ params }: PageProps) {
       <header className="h-16 border-b border-zinc-100 bg-white/80 backdrop-blur-sm">
         <div className="mx-auto flex h-full max-w-2xl items-center px-6">
           <span className="text-lg font-bold tracking-tight text-zinc-800">AxiomLancer</span>
-          <span className="ml-2 text-sm text-zinc-400">· Avaliacao de Ciclo</span>
+          <span className="ml-2 text-sm text-zinc-400">· Avaliação de Ciclo</span>
         </div>
       </header>
 
       <div className="mx-auto max-w-2xl px-6 py-12">
         {/* Fixed-height intro card — CLS = 0 */}
         <div className="mb-8 min-h-[96px] rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold text-zinc-800">Avaliacao de Desempenho</h1>
+          <h1 className="text-2xl font-bold text-zinc-800">Avaliação de Desempenho</h1>
           <p className="mt-1 text-sm text-zinc-500">
             Seu feedback qualitativo e fundamental para o crescimento do profissional.
           </p>
@@ -60,7 +60,7 @@ export default async function CycleEvaluationPage({ params }: PageProps) {
           <div className="rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
             <p className="text-lg font-semibold text-red-700">Link expirado</p>
             <p className="mt-2 text-sm text-red-500">
-              Este convite de avaliacao nao e mais valido. Entre em contato com o freelancer para uma nova solicitacao.
+              Este convite de avaliação não é mais válido. Entre em contato com o freelancer para uma nova solicitacao.
             </p>
           </div>
         ) : (

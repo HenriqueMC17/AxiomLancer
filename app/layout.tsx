@@ -6,9 +6,9 @@ import { ConvexClientProvider } from "@/components/providers/convex-client-provi
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "AxiomLancer - Motor Financeiro Autonomo (7Keys)",
+  title: "AxiomLancer - Motor Financeiro Autônomo (7Keys)",
   description:
-    "Plataforma SaaS de gestao financeira, faturamento autonomo e cobranca preditiva para freelancers e microagencias. Desenvolvido por 7Keys.",
+    "Plataforma SaaS de gestão financeira, faturamento autônomo e cobrança preditiva para freelancers e microagências. Desenvolvido por 7Keys.",
 };
 
 export default function RootLayout({

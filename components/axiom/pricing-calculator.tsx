@@ -49,7 +49,7 @@ export function PricingCalculator() {
         setResult(data.result as PricingOutput);
       }
     } catch (err) {
-      console.error("Erro ao calcular precificacao:", err);
+      console.error("Erro ao calcular precificação:", err);
     } finally {
       setIsLoading(false);
     }
@@ -71,14 +71,14 @@ export function PricingCalculator() {
           <div>
             <div className="flex items-center gap-2">
               <CardTitle className="text-xl font-bold tracking-tight">
-                Calculadora de Precificacao &amp; Margem Real
+                Calculadora de Precificação &amp; Margem Real
               </CardTitle>
               <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 text-xs">
                 Simples Nacional &amp; Fator R
               </Badge>
             </div>
             <CardDescription className="text-sm mt-1">
-              Elimine o risco de subprecificacao calculando sua hora tecnica com provisionamento exato de tributos, gateway e despesas
+              Elimine o risco de subprecificação calculando sua hora tecnica com provisionamento exato de tributos, gateway e despesas
             </CardDescription>
           </div>
         </div>
