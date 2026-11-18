@@ -153,7 +153,7 @@ export function ProfileForm() {
               <div className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl border border-zinc-800 bg-zinc-950/40">
                 <div className="relative group">
                   <img
-                    src={formData.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250"}
+                    src={formData.avatar_url || "/placeholder-user.jpg"} onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder-user.jpg"; }}
                     alt="Foto de Perfil"
                     className="w-16 h-16 rounded-full object-cover border-2 border-emerald-500/60 shadow-md shadow-emerald-500/10"
                   />

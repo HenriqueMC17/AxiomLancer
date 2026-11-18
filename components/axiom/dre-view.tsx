@@ -49,6 +49,16 @@ export function DREView() {
       <CardContent>
         {isLoading ? (
           <div className="text-center py-8 text-sm text-muted-foreground">Carregando balanço contábil...</div>
+        ) : !dre ? (
+          <div className="text-center py-12 text-zinc-400 space-y-3">
+            <p className="text-sm">Não foi possível carregar o demonstrativo contábil no momento.</p>
+            <button
+              onClick={fetchDRE}
+              className="px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800 text-xs font-semibold text-zinc-200 hover:bg-zinc-700 transition-colors"
+            >
+              Recarregar DRE
+            </button>
+          </div>
         ) : (
           <div className="rounded-xl border border-border overflow-hidden font-mono text-xs">
             <div className="p-3.5 bg-muted/40 font-sans font-bold flex justify-between items-center border-b border-border text-foreground">

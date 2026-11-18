@@ -100,7 +100,7 @@ export function InvoiceManager() {
       const res = await fetch(`/api/invoices/${invoiceId}/recover`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rate_percent: 5.0 }),
+        body: JSON.stringify({ take_rate_percent: 5.0, rate_percent: 5.0 }),
       });
       const data = await res.json();
 
@@ -237,7 +237,7 @@ export function InvoiceManager() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label htmlFor="num">NÂº da Fatura</Label>
+                      <Label htmlFor="num">Nº da Fatura</Label>
                       <Input
                         id="num"
                         value={invoiceNumber}
@@ -313,7 +313,14 @@ export function InvoiceManager() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {invoices.map((inv) => {
+                {invoices.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-8 text-center text-muted-foreground font-sans">
+                      Nenhuma fatura emitida ainda. Clique em &quot;Nova Fatura&quot; para registrar seu primeiro faturamento.
+                    </td>
+                  </tr>
+                ) : (
+                  invoices.map((inv) => {
                   const isOverdue = inv.status === "OVERDUE";
                   const isPaid = inv.status === "PAID";
                   const isDraft = inv.status === "DRAFT";
@@ -387,7 +394,7 @@ export function InvoiceManager() {
                       </td>
                     </tr>
                   );
-                })}
+                  }))}
               </tbody>
             </table>
           </div>

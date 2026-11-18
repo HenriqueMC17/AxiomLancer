@@ -4,59 +4,59 @@ import { useState, useTransition } from "react";
 import { Star, Clock, CheckCircle, PlusCircle, Loader2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import type { CycleEvaluation, CycleTriggerType } from "@/core/domain/types";
 
-// ─── Skeleton (CLS = 0) ─────────────────────────────────────────────────────
+// ─── Skeleton (CLS = 0) ───────────────────────────────────────────────────────
 function CycleCardSkeleton() {
   return (
-    <div className="h-[120px] w-full animate-pulse rounded-2xl border border-zinc-100 bg-zinc-50" />
+    <div className="h-[120px] w-full animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/40" />
   );
 }
 
-// ─── Score Badge ──────────────────────────────────────────────────────────────
+// ─── Score Badge ─────────────────────────────────────────────────────────────
 function ScoreBadge({ score }: { score: number }) {
   const color =
-    score >= 4.5 ? "bg-emerald-100 text-emerald-700 border-emerald-200"
-    : score >= 3.5 ? "bg-blue-100 text-blue-700 border-blue-200"
-    : score >= 2.5 ? "bg-amber-100 text-amber-700 border-amber-200"
-    : "bg-red-100 text-red-700 border-red-200";
+    score >= 4.5 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+    : score >= 3.5 ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+    : score >= 2.5 ? "bg-amber-500/10 text-amber-400 border-amber-500/30"
+    : "bg-rose-500/10 text-rose-400 border-rose-500/30";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-sm font-bold ${color}`}>
+    <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-mono font-bold ${color}`}>
       <Star size={12} className="fill-current" />
       {score.toFixed(2)}
     </span>
   );
 }
 
-// ─── Status Badge ─────────────────────────────────────────────────────────────
+// ─── Status Badge ────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status?: string }) {
   if (status === "COMPLETED") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-        <CheckCircle size={12} /> Concluido
+      <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-400">
+        <CheckCircle size={12} /> Concluído
       </span>
     );
   }
   if (status === "PENDING") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+      <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
         <Clock size={12} /> Aguardando
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-medium text-zinc-500">
+    <span className="inline-flex items-center gap-1 rounded-full border border-zinc-700 bg-zinc-800/50 px-2 py-0.5 text-xs font-medium text-zinc-400">
       Expirado
     </span>
   );
 }
 
-// ─── Trigger Label ────────────────────────────────────────────────────────────
+// ─── Trigger Label ───────────────────────────────────────────────────────────
 function TriggerLabel({ type }: { type?: CycleTriggerType }) {
   const map: Record<CycleTriggerType, string> = {
     MILESTONE_10_PROJECTS: "10 Projetos",
     MONTHLY_30_DAYS: "Mensal (30 dias)",
     MANUAL: "Manual",
   };
-  return <span className="text-xs text-zinc-400">{type ? map[type] : "—"}</span>;
+  return <span className="text-xs text-zinc-400 font-mono">{type ? map[type] : "—"}</span>;
 }
 
 // ─── Dimension Bar ───────────────────────────────────────────────────────────
@@ -64,14 +64,13 @@ function DimensionBar({ label, value }: { label: string; value?: number }) {
   const pct = value ? (value / 5) * 100 : 0;
   return (
     <div className="space-y-1">
-      <div className="flex justify-between text-xs text-zinc-500">
+      <div className="flex justify-between text-xs text-zinc-400">
         <span>{label}</span>
-        <span className="font-medium">{value?.toFixed(1) ?? "—"}</span>
+        <span className="font-medium font-mono text-zinc-200">{value?.toFixed(1) ?? "—"}</span>
       </div>
-      {/* Reserved height prevents CLS */}
-      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800">
         <div
-          className="h-full rounded-full bg-blue-500 transition-all duration-500"
+          className="h-full rounded-full bg-emerald-500 transition-all duration-500"
           style={{ width: `${pct}%` }}
           role="progressbar"
           aria-valuenow={value}
@@ -83,24 +82,24 @@ function DimensionBar({ label, value }: { label: string; value?: number }) {
   );
 }
 
-// ─── Cycle Card ───────────────────────────────────────────────────────────────
+// ─── Cycle Card ──────────────────────────────────────────────────────────────
 function CycleCard({ cycle }: { cycle: CycleEvaluation }) {
   const [expanded, setExpanded] = useState(false);
   const isCompleted = cycle.status === "COMPLETED";
 
   return (
-    <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm transition-shadow hover:shadow-md">
+    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 backdrop-blur-sm shadow-sm transition-all hover:border-zinc-700">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-semibold text-zinc-800">{cycle.cycle_identifier}</p>
+            <p className="truncate text-sm font-semibold text-white">{cycle.cycle_identifier}</p>
             <StatusBadge status={cycle.status} />
             <TriggerLabel type={cycle.trigger_type} />
           </div>
           {cycle.client_name && (
-            <p className="mt-0.5 text-xs text-zinc-500">Cliente: {cycle.client_name}</p>
+            <p className="mt-0.5 text-xs text-zinc-400">Cliente: {cycle.client_name}</p>
           )}
-          <p className="mt-0.5 text-xs text-zinc-400">
+          <p className="mt-0.5 text-xs text-zinc-500 font-mono">
             {cycle.created_at ? new Date(cycle.created_at).toLocaleDateString("pt-BR") : "—"}
           </p>
         </div>
@@ -113,7 +112,7 @@ function CycleCard({ cycle }: { cycle: CycleEvaluation }) {
               href={`/evaluate/cycle/${cycle.invitation_token}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-100"
+              className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-colors"
             >
               Ver link
             </a>
@@ -123,7 +122,7 @@ function CycleCard({ cycle }: { cycle: CycleEvaluation }) {
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
               aria-label="Expandir detalhes"
-              className="rounded-lg border border-zinc-100 p-1.5 text-zinc-400 hover:border-zinc-200 hover:text-zinc-600"
+              className="rounded-lg border border-zinc-800 p-1.5 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200 bg-zinc-800/40"
             >
               {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
@@ -131,25 +130,24 @@ function CycleCard({ cycle }: { cycle: CycleEvaluation }) {
         </div>
       </div>
 
-      {/* Expanded detail — reserved height = auto, no CLS because toggled by user */}
       {expanded && isCompleted && (
-        <div className="mt-5 space-y-4 border-t border-zinc-50 pt-5">
+        <div className="mt-5 space-y-4 border-t border-zinc-800 pt-5">
           <div className="grid gap-3">
-            <DimensionBar label="Comunicacao" value={cycle.score_communication} />
+            <DimensionBar label="Comunicação" value={cycle.score_communication} />
             <DimensionBar label="Proatividade" value={cycle.score_proactivity} />
-            <DimensionBar label="Apresentacao de Resultados" value={cycle.score_results} />
+            <DimensionBar label="Apresentação de Resultados" value={cycle.score_results} />
             <DimensionBar label="Entendimento da Dor" value={cycle.score_understanding} />
-            <DimensionBar label="Atendimento a Demanda" value={cycle.score_demand_delivery} />
+            <DimensionBar label="Atendimento à Demanda" value={cycle.score_demand_delivery} />
           </div>
           {cycle.comments && (
-            <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4">
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Comentario</p>
-              <p className="text-sm text-zinc-700">{cycle.comments}</p>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Comentário</p>
+              <p className="text-sm text-zinc-300">{cycle.comments}</p>
             </div>
           )}
           {cycle.completed_at && (
-            <p className="text-right text-xs text-zinc-400">
-              Concluido em: {new Date(cycle.completed_at).toLocaleString("pt-BR")}
+            <p className="text-right text-xs text-zinc-500 font-mono">
+              Concluído em: {new Date(cycle.completed_at).toLocaleString("pt-BR")}
             </p>
           )}
         </div>
@@ -173,73 +171,90 @@ function TriggerModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!clientId.trim()) return;
+    if (!clientId.trim()) {
+      setError("Identificador do cliente é obrigatório");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/cycle-evaluations/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: clientId.trim(), trigger_type: trigger }),
+        body: JSON.stringify({ client_id: clientId, trigger_type: trigger }),
       });
-      const json = await res.json() as { success: boolean; error?: { message: string } };
-      if (!res.ok || !json.success) throw new Error(json.error?.message ?? "Erro ao disparar.");
+      const json = await res.json() as { success: boolean; message?: string };
+      if (!res.ok) {
+        setError(json.message ?? "Erro ao disparar ciclo");
+        return;
+      }
       onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido.");
+    } catch {
+      setError("Falha de rede ao disparar convite");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
-        <h3 className="mb-6 text-lg font-bold text-zinc-800">Disparar Avaliacao de Ciclo</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-700">ID do Cliente</label>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl border border-zinc-700 bg-zinc-900 p-6 shadow-2xl text-white">
+        <h3 className="text-lg font-bold text-white">Disparar Avaliação de Ciclo</h3>
+        <p className="mt-1 text-sm text-zinc-400">
+          Gera um ciclo de avaliação e convite por e-mail para o cliente.
+        </p>
+
+        {error && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-500/30 bg-rose-950/20 px-4 py-2.5 text-xs text-rose-300">
+            <AlertCircle size={14} className="shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+              ID do Cliente *
+            </label>
             <input
               type="text"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
-              placeholder="cli_acme"
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-800 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-              required
+              placeholder="Ex: cli_acme ou cli_nexus"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-3.5 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-700">Tipo de Gatilho</label>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">
+              Tipo de Gatilho
+            </label>
             <select
               value={trigger}
               onChange={(e) => setTrigger(e.target.value as CycleTriggerType)}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-800 focus:border-blue-400 focus:outline-none"
+              className="w-full rounded-xl border border-zinc-700 bg-zinc-800/60 px-3.5 py-2 text-sm text-white focus:border-emerald-500 focus:outline-none"
             >
-              <option value="MANUAL">Manual</option>
-              <option value="MILESTONE_10_PROJECTS">Marco 10 Projetos</option>
-              <option value="MONTHLY_30_DAYS">Ciclo Mensal (30 dias)</option>
+              <option value="MANUAL" className="bg-zinc-900">Manual (Solicitação Imediata)</option>
+              <option value="MILESTONE_10_PROJECTS" className="bg-zinc-900">Marco de 10 Projetos Concluídos</option>
+              <option value="MONTHLY_30_DAYS" className="bg-zinc-900">Mensal (30 dias de recorrência)</option>
             </select>
           </div>
-          {error && (
-            <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              <AlertCircle size={14} /> {error}
-            </div>
-          )}
-          <div className="flex gap-3 pt-2">
+
+          <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-medium text-zinc-600 hover:bg-zinc-50"
+              className="rounded-xl border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              disabled={loading || !clientId.trim()}
-              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              disabled={loading}
+              className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition-colors shadow-lg shadow-emerald-600/20"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : null}
-              Disparar
+              Disparar Convite
             </button>
           </div>
         </form>
@@ -248,7 +263,7 @@ function TriggerModal({
   );
 }
 
-// ─── Main Panel ───────────────────────────────────────────────────────────────
+// ─── Main Panel ──────────────────────────────────────────────────────────────
 interface CycleEvaluationsPanelProps {
   initialData?: CycleEvaluation[];
 }
@@ -270,7 +285,6 @@ export function CycleEvaluationsPanel({ initialData }: CycleEvaluationsPanelProp
     }
   }
 
-  // Fetch on mount if no initial data
   useState(() => {
     if (!initialData) void fetchCycles();
   });
@@ -285,46 +299,46 @@ export function CycleEvaluationsPanel({ initialData }: CycleEvaluationsPanelProp
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-zinc-800">Avaliacoes de Ciclo</h2>
-          <p className="text-sm text-zinc-500">
-            Feedback qualitativo recorrente dos seus clientes
+          <h2 className="text-xl font-bold text-white tracking-tight">Avaliações de Ciclo</h2>
+          <p className="text-sm text-zinc-400 mt-0.5">
+            Feedback qualitativo recorrente dos seus clientes com prova de autoridade
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-600/20 shrink-0"
         >
           <PlusCircle size={16} />
           Novo Ciclo
         </button>
       </div>
 
-      {/* Summary Stats — reserved height = 80px (CLS = 0) */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Total de Ciclos", value: cycles.length.toString(), color: "text-zinc-800" },
-          { label: "Concluidos", value: completed.length.toString(), color: "text-emerald-600" },
+          { label: "Total de Ciclos", value: cycles.length.toString(), color: "text-white" },
+          { label: "Concluídos", value: completed.length.toString(), color: "text-emerald-400" },
           {
-            label: "Score Medio",
+            label: "Score Médio",
             value: avgScore !== null ? avgScore.toFixed(2) : "—",
-            color: "text-blue-600",
+            color: "text-cyan-400",
           },
         ].map((stat) => (
-          <div key={stat.label} className="h-[80px] rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm">
-            <p className="text-xs text-zinc-400">{stat.label}</p>
-            <p className={`mt-1 text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+          <div key={stat.label} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 backdrop-blur-sm shadow-sm space-y-1">
+            <p className="text-xs text-zinc-400 font-medium">{stat.label}</p>
+            <p className={`text-2xl font-mono font-bold ${stat.color}`}>{stat.value}</p>
           </div>
         ))}
       </div>
 
       {/* Pending banner */}
       {pending.length > 0 && (
-        <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
-          <Clock size={16} className="shrink-0 text-amber-500" />
+        <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-950/20 px-5 py-3 text-sm text-amber-300">
+          <Clock size={16} className="shrink-0 text-amber-400 animate-pulse" />
           <span>
-            <strong>{pending.length}</strong> avaliacao{pending.length > 1 ? "oes" : ""} aguardando resposta do cliente.
+            <strong>{pending.length}</strong> avaliação{pending.length > 1 ? "ões" : ""} aguardando resposta do cliente.
           </span>
         </div>
       )}
@@ -335,10 +349,10 @@ export function CycleEvaluationsPanel({ initialData }: CycleEvaluationsPanelProp
           {[0, 1, 2].map((i) => <CycleCardSkeleton key={i} />)}
         </div>
       ) : cycles.length === 0 ? (
-        <div className="flex h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-100 text-zinc-400">
+        <div className="flex h-[200px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-zinc-800 text-zinc-500">
           <Star size={32} className="mb-3 opacity-30" />
-          <p className="text-sm font-medium">Nenhuma avaliacao de ciclo ainda.</p>
-          <p className="text-xs">Dispare seu primeiro ciclo pelo botao acima.</p>
+          <p className="text-sm font-medium text-zinc-400">Nenhuma avaliação de ciclo ainda.</p>
+          <p className="text-xs">Dispare seu primeiro ciclo pelo botão acima.</p>
         </div>
       ) : (
         <div className="space-y-3">

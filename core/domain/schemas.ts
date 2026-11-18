@@ -35,8 +35,12 @@ export const pricingCalculationSchema = z.object({
 
 export const recoverInvoiceSchema = z.object({
   invoice_id: z.string().min(1),
-  take_rate_percent: z.number().min(1).max(25).default(5.0),
-});
+  take_rate_percent: z.number().min(1).max(25).optional().default(5.0),
+  rate_percent: z.number().min(1).max(25).optional(),
+}).transform((data) => ({
+  invoice_id: data.invoice_id,
+  take_rate_percent: data.rate_percent ?? data.take_rate_percent ?? 5.0,
+}));
 
 export const createMessageTemplateSchema = z.object({
   tone_of_voice: z.enum(["AMIGAVEL", "FIRME", "EXECUTIVO"], {
