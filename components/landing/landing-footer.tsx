@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Zap, ArrowRight, ShieldCheck, Heart, Terminal, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,8 +68,14 @@ export function LandingFooter() {
           {/* Brand Col (5 cols) */}
           <div className="md:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-700 text-black font-black text-lg shadow-md shadow-emerald-500/20">
-                A
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900/90 border border-emerald-500/30 p-1 shadow-md shadow-emerald-500/20 overflow-hidden">
+                <Image
+                  src="/logo-emblem.png"
+                  alt="AxiomLancer"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
               <div className="flex items-center gap-2">
                 <span className="font-extrabold text-base text-white tracking-tight">AxiomLancer</span>

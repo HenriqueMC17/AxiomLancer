@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Zap, 
@@ -53,9 +54,15 @@ export function LandingNavbar() {
         <div className="flex items-center justify-between">
           {/* Logo Brand */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-700 text-black font-black text-xl shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
-              A
-              <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/90 border border-emerald-500/35 p-1 shadow-lg shadow-emerald-500/20 group-hover:scale-105 group-hover:border-emerald-500/60 transition-all duration-200 overflow-hidden">
+              <Image
+                src="/logo-emblem.png"
+                alt="AxiomLancer"
+                width={36}
+                height={36}
+                priority
+                className="object-contain drop-shadow-[0_0_8px_rgba(16,185,129,0.35)]"
+              />
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">

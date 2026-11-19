@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -96,8 +97,15 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.4 }}
-              className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-black font-black text-xl shadow-lg shadow-emerald-500/20">
-              A
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-zinc-900/90 border border-emerald-500/35 p-1 shadow-lg shadow-emerald-500/20 overflow-hidden">
+              <Image
+                src="/logo-emblem.png"
+                alt="AxiomLancer"
+                width={34}
+                height={34}
+                priority
+                className="object-contain drop-shadow-[0_0_8px_rgba(16,185,129,0.35)]"
+              />
             </motion.div>
             <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1, duration: 0.35 }}>
               <div className="flex items-center gap-2">

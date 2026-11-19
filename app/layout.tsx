@@ -9,6 +9,11 @@ export const metadata = {
   title: "AxiomLancer - Motor Financeiro Autônomo (7Keys)",
   description:
     "Plataforma SaaS de gestão financeira, faturamento autônomo e cobrança preditiva para freelancers e microagências. Desenvolvido por 7Keys.",
+  icons: {
+    icon: "/logo-emblem.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({

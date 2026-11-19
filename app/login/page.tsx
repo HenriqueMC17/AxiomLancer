@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -62,8 +63,15 @@ export default function LoginPage() {
             transition={{ delay: 0.1, duration: 0.45, type: "spring", stiffness: 200 }}
             className="flex justify-center"
           >
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-700 text-black font-black text-4xl shadow-2xl shadow-emerald-500/40">
-              A
+            <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-900/90 border-2 border-emerald-500/40 p-2.5 shadow-2xl shadow-emerald-500/30 backdrop-blur-xl">
+              <Image
+                src="/logo-emblem.png"
+                alt="AxiomLancer Logo"
+                width={68}
+                height={68}
+                priority
+                className="object-contain drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]"
+              />
               <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-40"></span>
                 <span className="relative inline-flex rounded-full h-5 w-5 bg-emerald-500 border-2 border-zinc-950"></span>
@@ -82,7 +90,7 @@ export default function LoginPage() {
                 7Keys
               </Badge>
             </div>
-            <p className="text-sm text-zinc-400">Motor de Execucao Financeira Autonoma</p>
+            <p className="text-sm text-zinc-400">Motor de Execução Financeira Autônoma</p>
             <p className="text-xs text-zinc-600 mt-0.5">Faturamento. Cobranca. Controle.</p>
           </motion.div>
         </div>

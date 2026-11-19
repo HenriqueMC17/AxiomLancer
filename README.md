@@ -1,5 +1,9 @@
 ﻿# AxiomLancer — Core Domain & Full Stack Architecture
 
+<p align="center">
+  <img src="public/logo-official.jpg" alt="AxiomLancer SaaS Startup Logo" width="540" />
+</p>
+
 [![CI Pipeline](https://img.shields.io/badge/CI-passing-brightgreen?style=flat-square)]()
 [![Test Coverage](https://img.shields.io/badge/core__coverage-113%20passed%20%7C%2015%20suites-brightgreen?style=flat-square&logo=vitest)]()
 [![Security Architecture](https://img.shields.io/badge/architecture-Zero__Trust%20%7C%20BOLA--Free-blue?style=flat-square)]()
