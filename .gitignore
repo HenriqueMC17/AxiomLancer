@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # AxiomLancer - Enterprise .gitignore
 # Next.js 15+ (App Router) | React 19 | TypeScript | PNPM | Convex | 7Keys
 # ==============================================================================
@@ -108,9 +108,7 @@ $RECYCLE.BIN/
 *.sql.gz
 *.sql.tar
 # Nota: AxiomLancer.sql permanece rastreado como schema mestre da arquitetura
-.vercel
-.env*
 
-! .env.example
-!.env.example
+# 10. Ativos Brutos de Design e Mídias Originais Não Otimizadas
+# (As versões otimizadas de produção residem e são versionadas em public/)
 Logo_Oficial_AxiomLancer_Startup.jpg

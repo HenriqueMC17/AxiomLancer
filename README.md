@@ -242,30 +242,38 @@ A governança de qualidade do AxiomLancer adota a filosofia **Shift-Left**: a va
 
 A suíte de testes é executada com **Vitest 5.0**, estruturada sob o padrão canônico **AAA (Arrange, Act, Assert)** e fundamentada na injeção de dependências pura do `core/`, garantindo execução veloz e zero dependência de infraestrutura externa ou rede.
 
-### Matriz de Cobertura de Testes Unitários
+### Matriz de Cobertura de Testes Unitários (15 Suítes · 113 Testes)
 
 ```text
- ✓ tests/unit/dashboard-summary.spec.ts  (3 tests)   Caixa realizado vs. OPEX e margem líquida real
- ✓ tests/unit/project.spec.ts            (7 tests)   Validação cronológica, status e proteção LGPD
- ✓ tests/unit/reputation-score.spec.ts   (11 tests)  Média ponderada, normalização e anti-divisão por zero
- ✓ tests/unit/message-template.spec.ts   (13 tests)  Validação Zod de templates e interpolação multicanal
- ✓ tests/unit/contract.spec.ts           (14 tests)  Máquina de estados, hash SHA-256 e termos imutáveis
- ✓ tests/unit/use-cases.spec.ts          (3 tests)   Orquestração pura de use-cases e injeção explícita (DIP)
- ✓ tests/unit/cycle-evaluation.spec.ts   (36 tests)  Gatilhos de milestone, 5 dimensões e tokens únicos
- ✓ tests/unit/tax-engine.spec.ts         (3 tests)   Cálculo do Fator R, Anexos III/V e split do DAS
- ✓ tests/unit/monetary.spec.ts           (5 tests)   Aritmética decimal.js, formatação BRL e precisão
- ✓ tests/unit/rules-engine.spec.ts       (3 tests)   Offsets da régua D-3 a D+7 e seleção de canais
+ ✓ tests/unit/dashboard-summary.spec.ts     (3 tests)   Caixa realizado vs. OPEX e margem líquida real
+ ✓ tests/unit/project.spec.ts               (7 tests)   Validação cronológica, status e proteção LGPD
+ ✓ tests/unit/reputation-score.spec.ts      (11 tests)  Média ponderada, normalização e anti-divisão por zero
+ ✓ tests/unit/message-template.spec.ts      (13 tests)  Validação Zod de templates e interpolação multicanal
+ ✓ tests/unit/contract.spec.ts              (14 tests)  Máquina de estados, hash SHA-256 e termos imutáveis
+ ✓ tests/unit/use-cases.spec.ts             (3 tests)   Orquestração pura de use-cases e injeção explícita (DIP)
+ ✓ tests/unit/cycle-evaluation.spec.ts      (36 tests)  Gatilhos de milestone, 5 dimensões e tokens únicos
+ ✓ tests/unit/tax-engine.spec.ts            (3 tests)   Cálculo do Fator R, Anexos III/V e split do DAS
+ ✓ tests/unit/monetary.spec.ts              (5 tests)   Aritmética decimal.js, formatação BRL e precisão
+ ✓ tests/unit/rules-engine.spec.ts          (3 tests)   Offsets da régua D-3 a D+7 e seleção de canais
+ ✓ tests/unit/pix-gateway.spec.ts           (2 tests)   Geração de chave PIX, payload EMV BACEN e CRC16
+ ✓ tests/unit/whatsapp-notifier.spec.ts     (4 tests)   Adaptador multicanal de WhatsApp e disparo assíncrono
+ ✓ tests/unit/release-milestone.spec.ts     (4 tests)   Liberação atômica de escrow com split tributário
+ ✓ tests/unit/transactional-outbox.spec.ts  (2 tests)   Padrão Transactional Outbox e garantia de entrega
+ ✓ tests/unit/pricing.spec.ts               (3 tests)   Motor de precificação horária, markup e Fator R
 
- Test Files  10 passed (10)
-      Tests  98 passed (98)
-   Duration  1.38s
+ Test Files  15 passed (15)
+      Tests  113 passed (113)
+   Duration  ~1.20s
 ```
 
 ### Comandos de Validação e Qualidade
 
 ```bash
-# Executar a suíte completa de 98 testes unitários
+# Executar a suíte completa de 113 testes unitários
 pnpm test
+
+# Executar a suíte de testes de forma direta no CI
+pnpm test --run
 
 # Executar testes em modo watch durante desenvolvimento
 pnpm exec vitest
@@ -307,32 +315,42 @@ pnpm exec tsc --noEmit
 # 5. Executar a suíte de testes automatizados para assegurar sanidade
 pnpm test
 
-# 6. Iniciar os serviços locais do Convex (em terminal dedicado)
-pnpm exec convex dev
-
-# 7. Iniciar o servidor de desenvolvimento Next.js
+# 6. Iniciar o servidor de desenvolvimento Next.js
 pnpm dev
+
+# 7. (Alternativa) Executar compilação e servidor de produção local
+pnpm build
+pnpm start
 ```
+
+### Credenciais Pré-configuradas para Demonstração (Banca Avaliadora)
+
+Para navegação imediata e validação das funcionalidades na banca avaliadora:
+* **Ambiente Local:** `http://localhost:3000/login`
+* **E-mail de Acesso:** `henrique@7keys.dev`
+* **Senha:** `7keys2026`
+* **Perfil do Usuário:** Lead Software Architect & Tech Freelancer (7Keys)
 
 ### Contrato de Variáveis de Ambiente (`.env.local`)
 
 A aplicação implementa validação estrita no momento do boot. O servidor rejeita a inicialização (*Fail Fast*) se qualquer variável obrigatória estiver ausente:
 
 ```env
-# ── Segurança & Autenticação (Zero Secrets) ────────────────
-JWT_SECRET=<gerado-via-openssl-rand-hex-32-minimo-32-caracteres>
+# ── Segurança & Autenticação (Zero Secrets / JWT BFF) ──────
+JWT_SECRET=axiom-lancer-7keys-super-secret-jwt-key-2026
+JWT_EXPIRES_IN=2h
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# ── Credenciais Administrativas de Inicialização ───────────
-ADMIN_EMAIL=admin@axiomlancer.com
-ADMIN_PASSWORD=<senha-segura-minimo-12-caracteres>
-ADMIN_NAME=Administrador do Sistema
-ADMIN_USER_ID=usr_01h7keys_admin_uuid
+# ── Credenciais Administrativas de Demonstração (7Keys) ────
+ADMIN_EMAIL=henrique@7keys.dev
+ADMIN_PASSWORD=7keys2026
+ADMIN_NAME=Henrique Monteiro
+ADMIN_USER_ID=usr_7keys_001
 
-# ── Cluster Convex Serverless ──────────────────────────────
-CONVEX_DEPLOYMENT=dev:<seu-deployment-aqui>
-NEXT_PUBLIC_CONVEX_URL=https://<seu-deployment-aqui>.convex.cloud
-CONVEX_DEPLOY_KEY=dev:<seu-deployment-aqui>|<token-de-acesso>
+# ── Cluster Convex Serverless (Opcional) ───────────────────
+CONVEX_DEPLOYMENT=dev:trustworthy-otter-486
+NEXT_PUBLIC_CONVEX_URL=https://trustworthy-otter-486.convex.cloud
+CONVEX_DEPLOY_KEY=dev:trustworthy-otter-486|<seu-token>
 ```
 
 ### Catálogo Canônico de Endpoints da API
@@ -376,7 +394,7 @@ O projeto adota **Husky** e **Commitlint** para impor a convenção **Convention
 * `chore`: Atualizações de dependências, configurações ou scripts de infraestrutura.
 
 **Diretrizes de Pull Request:**
-1. Nenhum PR é aceito na branch `main` sem que todos os 98 testes e a checagem de tipos (`tsc --noEmit`) passem no pipeline de CI.
+1. Nenhum PR é aceito na branch `main` sem que todos os 113 testes e a checagem de tipos (`tsc --noEmit`) passem no pipeline de CI.
 2. Todo PR deve acompanhar documentação do impacto técnico e atualização de ADR caso altere contratos fundamentais de domínio.
 3. É vedada a autoaprovação de PRs que impactem o motor financeiro ou a política de segurança Zero Trust.
 
